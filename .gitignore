@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Custom
+tags
+TAGS
+Makefile
+sftpbatchfile
+archive
+bin
