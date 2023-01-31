@@ -7,6 +7,7 @@
 #include <numbers>
 
 #include <frc/AnalogGyro.h>
+#include <frc/estimator/SwerveDrivePoseEstimator.h>
 #include <frc/geometry/Translation2d.h>
 #include <frc/kinematics/SwerveDriveKinematics.h>
 #include <frc/kinematics/SwerveDriveOdometry.h>
@@ -52,11 +53,21 @@ private:
        m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation,
        m_backRightLocation};
 
-   frc::SwerveDriveOdometry<4> m_odometry{
+   /*frc::SwerveDriveOdometry<4> m_odometry{
        m_kinematics,
        m_gyro.GetRotation2d(),
        {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
         m_backLeft.GetPosition(), m_backRight.GetPosition()}};
-
+   */
+   
+  // Gains are for example purposes only edit later
+  frc::SwerveDrivePoseEstimator<4> m_poseEstimator{
+      m_kinematics,
+      frc::Rotation2d{},
+      {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
+       m_backLeft.GetPosition(), m_backRight.GetPosition()},
+      frc::Pose2d{},
+      {0.1, 0.1, 0.1},
+      {0.1, 0.1, 0.1}};  
    int iCallCount = 0;
 };
