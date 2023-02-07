@@ -6,12 +6,17 @@
 #include <frc/TimedRobot.h>
 #include <frc/XboxController.h>
 #include <frc/filter/SlewRateLimiter.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <iostream>
-
+#include <photonlib/PhotonUtils.h>
+#include <photonlib/PhotonCamera.h>
+#include <units/angle.h>
+#include <units/length.h>
 
 #include "Drivetrain.h"
 
-double AUTODRIVEX, AUTODRIVEY, AUTODRIVEROT;
+double speedfactor;
+int pipeIndex = 0;
 
 class Robot : public frc::TimedRobot
 {
@@ -20,6 +25,7 @@ public:
    {
       // wpi::PortForwarder::GetInstance().Add(5800, "photonvision.local", 5800);
       // PF for PhotonVision
+      frc::SmartDashboard::PutNumber("Pipeline", pipeIndex);
    }
 
    void RobotPeriodic() override
@@ -28,6 +34,18 @@ public:
       {
          m_swerve.Reset();
       }
+      if (m_controller.GetBButton())
+      {
+         speedfactor = 0.2;
+      }
+      else
+      {
+         speedfactor = 1.0;
+      }
+
+      // Get all m_controller inputs
+
+      // if
    }
 
    void AutonomousPeriodic() override
@@ -54,7 +72,8 @@ private:
    frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{10 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_rotLimiter{10 / 1_s};
 
-   void MainDrive(bool fieldRelative) {
+   void MainDrive(bool fieldRelative)
+   {
       // Get the x speed. We are inverting this because Xbox controllers return
       // negative values when we push forward.
       static int iCallCount = 0;
@@ -72,14 +91,16 @@ private:
       {
          const auto xSpeed = -m_xspeedLimiter.Calculate(
                                  frc::ApplyDeadband(m_controller.GetLeftY(), 0.10)) *
-                             Drivetrain::kMaxSpeed;
+                             Drivetrain::kMaxSpeed *
+                             speedfactor;
 
          // Get the y speed or sideways/strafe speed. We are inverting this because
          // we want a positive value when we pull to the left. Xbox controllers
          // return positive values when you pull to the right by default.
          const auto ySpeed = -m_yspeedLimiter.Calculate(
                                  frc::ApplyDeadband(m_controller.GetLeftX(), 0.10)) *
-                             Drivetrain::kMaxSpeed;
+                             Drivetrain::kMaxSpeed *
+                             speedfactor;
 
          // Get the rate of angular rotation. We are inverting this because we want a
          // positive value when we pull to the left (remember, CCW is positive in
@@ -94,19 +115,81 @@ private:
       else // A button
       {
 
+         const units::meter_t CAMERA_HEIGHT = 13_in;
+         const units::meter_t TARGET_HEIGHT = 1_in;
+         // Change me later ^^^
+         const units::radian_t CAMERA_PITCH = 0_deg;
+         const units::meter_t GOAL_RANGE_METERS = 2_ft;
+
+         photonlib::PhotonCamera camera("main");
+
+         // Change pipeline
+         pipeIndex = frc::SmartDashboard::GetNumber("Pipeline", 0);
+         camera.SetPipelineIndex(pipeIndex);
+
+         double forwardSpeed;
+         double sidewaySpeed;
+         double rotationSpeed;
+         const auto &result = camera.GetLatestResult();
+
+         if (result.HasTargets())
+         {
+            // First calculate range
+            units::meter_t range =
+                photonlib::PhotonUtils::CalculateDistanceToTarget(
+                    CAMERA_HEIGHT, TARGET_HEIGHT, CAMERA_PITCH,
+                    units::degree_t{result.GetBestTarget().GetPitch()});
+            // std::cout << "Range: " << range.to<double>() << std::endl;
+
+            // Use this range as the measurement we give to the PID controller.
+            // forwardSpeed = GOAL_RANGE_METERS.to<double>();
+            forwardSpeed = (range.to<double>() - 0.6);
+
+            // Calculate strafe
+            // sidewaySpeed = result.GetBestTarget().GetX();
+            // Something like this ^^
+
+            // Also calculate angular power
+            rotationSpeed = result.GetBestTarget().GetYaw();
+         }
+         else
+         {
+            // If we have no targets, stay still.
+            forwardSpeed = 0;
+            sidewaySpeed = 0;
+            rotationSpeed = 0;
+         }
+
+         // forwardSpeed = forwardSpeed / 10;
+         // if (forwardSpeed > 0.5) {
+         //   forwardSpeed = 0;
+         //}
+         // else if (forwardSpeed < -0.5)
+         //{
+         //   forwardSpeed = 0;
+         //}
+         // forwardSpeed = (result.GetBestTarget().GetArea() * -1 + 1.5) / 3;
+         sidewaySpeed = sidewaySpeed / 10;
+         rotationSpeed = rotationSpeed / 40;
+
+         std::cout << "Forward speed: " << forwardSpeed << " Rotation speed: " << rotationSpeed << std::endl;
+
          const auto xSpeed = m_xspeedLimiter.Calculate(
-                                 frc::ApplyDeadband(AUTODRIVEX, 0.01)) *
+                                 frc::ApplyDeadband(forwardSpeed, 0.30)) *
                              Drivetrain::kMaxSpeed;
 
+         // const auto ySpeed = -m_yspeedLimiter.Calculate(
+         //                         frc::ApplyDeadband(sidewaySpeed, 0.01)) *
+         //                     Drivetrain::kMaxSpeed;
+
          const auto ySpeed = -m_yspeedLimiter.Calculate(
-                                 frc::ApplyDeadband(AUTODRIVEY, 0.01)) *
+                                 frc::ApplyDeadband(m_controller.GetLeftX(), 0.10)) *
                              Drivetrain::kMaxSpeed;
 
          const auto rot = -m_rotLimiter.Calculate(
-                              frc::ApplyDeadband(AUTODRIVEROT, 0.01)) *
+                              frc::ApplyDeadband(rotationSpeed, 0.01)) *
                           Drivetrain::kMaxAngularSpeed;
-
-         m_swerve.Drive(xSpeed, ySpeed, rot, true);
+         m_swerve.Drive(xSpeed, ySpeed, rot, false);
       }
    }
 };
