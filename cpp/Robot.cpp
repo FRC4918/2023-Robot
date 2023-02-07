@@ -32,6 +32,7 @@
 double xid3;
 double zid3;
 double rotationid3;
+int speedfactor;
 
 class Robot : public frc::TimedRobot
 {
@@ -47,6 +48,14 @@ public:
       if (m_controller.GetBackButton())
       {
          m_swerve.Reset();
+      }
+      if (m_controller.GetBButton())
+      {
+         speedfactor = 0.2;
+      }
+      else
+      {
+         speedfactor = 1.0;
       }
    }
 
@@ -94,14 +103,16 @@ private:
       {
          const auto xSpeed = -m_xspeedLimiter.Calculate(
                                  frc::ApplyDeadband(m_controller.GetLeftY(), 0.10)) *
-                             Drivetrain::kMaxSpeed;
+                             Drivetrain::kMaxSpeed *
+                             speedfactor;
 
          // Get the y speed or sideways/strafe speed. We are inverting this because
          // we want a positive value when we pull to the left. Xbox controllers
          // return positive values when you pull to the right by default.
          const auto ySpeed = -m_yspeedLimiter.Calculate(
                                  frc::ApplyDeadband(m_controller.GetLeftX(), 0.10)) *
-                             Drivetrain::kMaxSpeed;
+                             Drivetrain::kMaxSpeed *
+                             speedfactor;
 
          // Get the rate of angular rotation. We are inverting this because we want a
          // positive value when we pull to the left (remember, CCW is positive in
