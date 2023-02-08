@@ -45,11 +45,11 @@ public:
 
    void RobotPeriodic() override
    {
-      if (m_controller.GetBackButton())
+      if (m_controllerdrive.GetBackButton())
       {
          m_swerve.Reset();
       }
-      if (m_controller.GetBButton())
+      if (m_controllerdrive.GetBButton())
       {
          speedfactor = 0.2;
       }
@@ -73,7 +73,12 @@ public:
    }
 
 private:
-   frc::XboxController m_controller{0};
+
+   // Controller 0 for driver, 1 for operator
+   // Knock-off will be controller 1
+   frc::XboxController m_controllerdrive{0};
+   frc::XboxController m_controllerop{1};
+
    Drivetrain m_swerve;
 
    // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0
@@ -99,10 +104,10 @@ private:
       }
 
       // if not A button
-      if (!m_controller.GetAButton())
+      if (!m_controllerdrive.GetAButton())
       {
          const auto xSpeed = -m_xspeedLimiter.Calculate(
-                                 frc::ApplyDeadband(m_controller.GetLeftY(), 0.10)) *
+                                 frc::ApplyDeadband(m_controllerdrive.GetLeftY(), 0.10)) *
                              Drivetrain::kMaxSpeed *
                              speedfactor;
 
@@ -110,7 +115,7 @@ private:
          // we want a positive value when we pull to the left. Xbox controllers
          // return positive values when you pull to the right by default.
          const auto ySpeed = -m_yspeedLimiter.Calculate(
-                                 frc::ApplyDeadband(m_controller.GetLeftX(), 0.10)) *
+                                 frc::ApplyDeadband(m_controllerdrive.GetLeftX(), 0.10)) *
                              Drivetrain::kMaxSpeed *
                              speedfactor;
 
@@ -119,7 +124,7 @@ private:
          // mathematics). Xbox controllers return positive values when you pull to
          // the right by default.
          const auto rot = -m_rotLimiter.Calculate(
-                              frc::ApplyDeadband(m_controller.GetRightX(), 0.10)) *
+                              frc::ApplyDeadband(m_controllerdrive.GetRightX(), 0.10)) *
                           Drivetrain::kMaxAngularSpeed;
 
          m_swerve.Drive(xSpeed, ySpeed, rot, fieldRelative);
