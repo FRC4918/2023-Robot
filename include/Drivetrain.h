@@ -59,15 +59,9 @@ private:
        {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
         m_backLeft.GetPosition(), m_backRight.GetPosition()}};
    */
-   
-  // Gains are for example purposes only edit later
-  frc::SwerveDrivePoseEstimator<4> m_poseEstimator{
-      m_kinematics,
-      frc::Rotation2d{},
-      {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
-       m_backLeft.GetPosition(), m_backRight.GetPosition()},
-      frc::Pose2d{},
-      {0.1, 0.1, 0.1},
-      {0.1, 0.1, 0.1}};  
+
+   frc::SwerveDriveOdometry<4> m_odometry{
+       m_kinematics, m_gyro.GetRotation2d(), {m_frontLeft.GetPosition(), m_frontRight.GetPosition(), m_backLeft.GetPosition(), m_backRight.GetPosition()}, frc::Pose2d{5_m, 13.5_m, 0_rad}};
+
    int iCallCount = 0;
 };

@@ -73,10 +73,10 @@ void MotorInitSpark(rev::CANSparkMax &m_motor)
                                // 10 Amps down to  5 Amps at 5700 RPM
    m_motor.SetSmartCurrentLimit(10, 5, 5000);
 #else
-                                 // 30 Amps below 5000 RPM, above 5000 RPM it ramps from
-                                 // 30 Amps down to 10 Amps at 5700 RPM
-                                 // We may have to try different CurrentLimits here to
-                                 // eliminate drivetrain chattering.
+                               // 30 Amps below 5000 RPM, above 5000 RPM it ramps from
+                               // 30 Amps down to 10 Amps at 5700 RPM
+                               // We may have to try different CurrentLimits here to
+                               // eliminate drivetrain chattering.
    m_motor.SetSmartCurrentLimit(80, 10, 5000);
 #endif
    m_motor.GetForwardLimitSwitch(
@@ -162,8 +162,9 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
 frc::SwerveModulePosition SwerveModule::GetPosition() const
 {
    return {units::meter_t{m_driveEncoder.GetPosition()},
-           units::radian_t{(-((360 * m_turningEncoder.GetAverageValue() / 4070 + m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0}};
-}
+           units::radian_t{(-((360 * m_turningEncoder.GetAverageValue() / 4070 + m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0},
+   };
+};
 
 void SwerveModule::SetDesiredState(
     const frc::SwerveModuleState &referenceState)

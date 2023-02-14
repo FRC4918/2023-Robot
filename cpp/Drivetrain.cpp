@@ -5,7 +5,7 @@
 #include "Drivetrain.h"
 #include <iostream>
 #include <frc/Timer.h>
-#include "ExampleGlobalMeasurementSensor.h"
+#include "visionSensor.h"
 
 void Drivetrain::Drive(units::meters_per_second_t xSpeed,
                        units::meters_per_second_t ySpeed,
@@ -51,17 +51,18 @@ void Drivetrain::Reset()
    m_gyro.Reset();
 }
 
-void Drivetrain::UpdateOdometry() {
-  m_poseEstimator.Update(m_gyro.GetRotation2d(),
-                         {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
-                          m_backLeft.GetPosition(), m_backRight.GetPosition()});
+void Drivetrain::UpdateOdometry()
+{
+   m_odometry.Update(m_gyro.GetRotation2d(),
+                     {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
+                      m_backLeft.GetPosition(), m_backRight.GetPosition()});
 
-  // Also apply vision measurements. We use 0.3 seconds in the past as an
-  // example -- on a real robot, this must be calculated based either on latency
-  // or timestamps.
-  m_poseEstimator.AddVisionMeasurement(
-      ExampleGlobalMeasurementSensor::GetEstimatedGlobalPose(
-          m_poseEstimator.GetEstimatedPosition()),
-      frc::Timer::GetFPGATimestamp() - 0.3_s);
+   // Also apply vision measurements. We use 0.3 seconds in the past as an
+   // example -- on a real robot, this must be calculated based either on latency
+   // or timestamps.
+   /*m_poseEstimator.AddVisionMeasurement(
+       visionSensor::GetEstimatedGlobalPose(
+           m_poseEstimator.GetEstimatedPosition()),
+       frc::Timer::GetFPGATimestamp() - 0.3_s);
+    */
 }
- 

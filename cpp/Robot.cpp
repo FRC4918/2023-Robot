@@ -8,28 +8,29 @@
 #include <frc/filter/SlewRateLimiter.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <iostream>
-#include <photonlib/PhotonUtils.h>
-#include <photonlib/PhotonCamera.h>
 #include <units/angle.h>
 #include <units/length.h>
-
+#include <networktables/NetworkTable.h>
+#include <networktables/NetworkTableEntry.h>
+#include <networktables/NetworkTableInstance.h>
 #include "Drivetrain.h"
 
 double speedfactor;
-int pipeIndex = 0;
+int pipelineindex = 0;
+bool ldriver = 0;
+
+// nt::NetworkTableInstance::GetDefault().GetTable("limelight")->GetNumberArray("camerapose_targetspace",std::vector<double>(6));
 
 class Robot : public frc::TimedRobot
 {
 public:
    void RobotInit() override
    {
-      // wpi::PortForwarder::GetInstance().Add(5800, "photonvision.local", 5800);
-      // PF for PhotonVision
-      frc::SmartDashboard::PutNumber("Pipeline", pipeIndex);
    }
 
    void RobotPeriodic() override
    {
+      // I really do not like this, but it works for now.
       if (m_controller.GetBackButton())
       {
          m_swerve.Reset();
@@ -43,9 +44,38 @@ public:
          speedfactor = 1.0;
       }
 
-      // Get all m_controller inputs
+      if (m_controller.GetLeftBumperPressed())
+      {
+         pipelineindex--;
+         if (pipelineindex < 0)
+         {
+            pipelineindex = 3;
+         }
+      }
+      if (m_controller.GetRightBumperPressed())
+      {
+         pipelineindex++;
+         if (pipelineindex > 3)
+         {
+            pipelineindex = 0;
+         }
+      }
+      if (m_controller.GetYButtonPressed())
+      {
+         ldriver = !ldriver;
+      }
+      std::shared_ptr<nt::NetworkTable> ltable =
 
-      // if
+         nt::NetworkTableInstance::GetDefault().GetTable("limelight");
+
+      nt::NetworkTableInstance::GetDefault().GetTable("limelight")->PutNumber("pipeline",pipelineindex);
+      // 0 = Drivermode, lights off
+      // 1 = Visionmode, lights auto
+      nt::NetworkTableInstance::GetDefault().GetTable("limelight")->PutNumber("camMode",ldriver);
+      nt::NetworkTableInstance::GetDefault().GetTable("limelight")->PutNumber("ledMode",ldriver);
+      
+
+      std::vector<double> lcam_pose_target = ltable->GetNumberArray("tid", std::vector<double>(6));
    }
 
    void AutonomousPeriodic() override
@@ -114,76 +144,16 @@ private:
       }
       else // A button
       {
-
-         const units::meter_t CAMERA_HEIGHT = 13_in;
-         const units::meter_t TARGET_HEIGHT = 1_in;
-         // Change me later ^^^
-         const units::radian_t CAMERA_PITCH = 0_deg;
-         const units::meter_t GOAL_RANGE_METERS = 2_ft;
-
-         photonlib::PhotonCamera camera("main");
-
-         // Change pipeline
-         pipeIndex = frc::SmartDashboard::GetNumber("Pipeline", 0);
-         camera.SetPipelineIndex(pipeIndex);
-
          double forwardSpeed;
          double sidewaySpeed;
          double rotationSpeed;
-         const auto &result = camera.GetLatestResult();
-
-         if (result.HasTargets())
-         {
-            // First calculate range
-            units::meter_t range =
-                photonlib::PhotonUtils::CalculateDistanceToTarget(
-                    CAMERA_HEIGHT, TARGET_HEIGHT, CAMERA_PITCH,
-                    units::degree_t{result.GetBestTarget().GetPitch()});
-            // std::cout << "Range: " << range.to<double>() << std::endl;
-
-            // Use this range as the measurement we give to the PID controller.
-            // forwardSpeed = GOAL_RANGE_METERS.to<double>();
-            forwardSpeed = (range.to<double>() - 0.6);
-
-            // Calculate strafe
-            // sidewaySpeed = result.GetBestTarget().GetX();
-            // Something like this ^^
-
-            // Also calculate angular power
-            rotationSpeed = result.GetBestTarget().GetYaw();
-         }
-         else
-         {
-            // If we have no targets, stay still.
-            forwardSpeed = 0;
-            sidewaySpeed = 0;
-            rotationSpeed = 0;
-         }
-
-         // forwardSpeed = forwardSpeed / 10;
-         // if (forwardSpeed > 0.5) {
-         //   forwardSpeed = 0;
-         //}
-         // else if (forwardSpeed < -0.5)
-         //{
-         //   forwardSpeed = 0;
-         //}
-         // forwardSpeed = (result.GetBestTarget().GetArea() * -1 + 1.5) / 3;
-         sidewaySpeed = sidewaySpeed / 10;
-         rotationSpeed = rotationSpeed / 40;
-
-         std::cout << "Forward speed: " << forwardSpeed << " Rotation speed: " << rotationSpeed << std::endl;
 
          const auto xSpeed = m_xspeedLimiter.Calculate(
                                  frc::ApplyDeadband(forwardSpeed, 0.30)) *
                              Drivetrain::kMaxSpeed;
 
-         // const auto ySpeed = -m_yspeedLimiter.Calculate(
-         //                         frc::ApplyDeadband(sidewaySpeed, 0.01)) *
-         //                     Drivetrain::kMaxSpeed;
-
          const auto ySpeed = -m_yspeedLimiter.Calculate(
-                                 frc::ApplyDeadband(m_controller.GetLeftX(), 0.10)) *
+                                 frc::ApplyDeadband(sidewaySpeed, 0.01)) *
                              Drivetrain::kMaxSpeed;
 
          const auto rot = -m_rotLimiter.Calculate(
