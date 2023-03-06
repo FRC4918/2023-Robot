@@ -19,6 +19,7 @@
 
 #include "Drivetrain.h"
 
+#include "ctre/Phoenix.h"
                                                             // CTRE compressor
    frc::Compressor m_compressor{ 0, frc::PneumaticsModuleType::CTREPCM };
 
@@ -26,6 +27,8 @@
                                   0, frc::PneumaticsModuleType::CTREPCM, 4, 6};
    frc::DoubleSolenoid m_grabberStbdSolenoid{
                                   0, frc::PneumaticsModuleType::CTREPCM, 5, 7};
+   WPI_TalonSRX m_ExtenderMotor{  3 };   // motor for arm extender
+   WPI_TalonSRX m_WristMotor{    12 };   // motor for arm wrist
 
 class Robot : public frc::TimedRobot
 {
@@ -34,8 +37,11 @@ class Robot : public frc::TimedRobot
 #ifdef JAG_TEMPSHOULDERMOTORTEST
    void MotorInitSpark(rev::CANSparkMax &m_motor);
    static const int ShoulderMotorDeviceID =  16;
+//   static const int WristMotorDeviceID =  17;
    rev::CANSparkMax m_ShoulderMotor{ ShoulderMotorDeviceID,
                                      rev::CANSparkMax::MotorType::kBrushless};
+//   rev::CANSparkMax m_WristMotor{ WristMotorDeviceID,
+//                                  rev::CANSparkMax::MotorType::kBrushless};
 #endif
 
 public:
@@ -104,9 +110,111 @@ void ArmMotorInitSpark(rev::CANSparkMax &m_motor)
 
 } // ArmMotorInitSpark()
 
+/*---------------------------------------------------------------------*/
+/* ArmMotorInitTalon()                                                 */
+/* Setup the initial configuration of a brushed motor, driven by a     */
+/* Talon SRX controller.  These settings can be superseded after this  */
+/* function is called, for the needs of each specific Talon-driven     */
+/* motor.                                                              */
+/*---------------------------------------------------------------------*/
+void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
+{
+   m_motor.ConfigFactoryDefault( 10 );
+   m_motor.SetSensorPhase(true);   // invert encoder value positive/negative
+   m_motor.SetInverted(false);     // invert direction of motor itself.
+
+                /* Configure Sensor Source for Primary PID */
+          /* Config to stop motor immediately when limit switch is closed. */
+                                                   // if encoder is connected
+      if ( OK == m_motor.ConfigSelectedFeedbackSensor(
+                     FeedbackDevice::CTRE_MagEncoder_Relative, 0, 10 ) ) {
+//       m_motor.ConfigForwardLimitSwitchSource(
+//                   LimitSwitchSource::LimitSwitchSource_FeedbackConnector,
+//                   LimitSwitchNormal::LimitSwitchNormal_NormallyOpen );
+//       m_motor.ConfigReverseLimitSwitchSource(
+//                   LimitSwitchSource::LimitSwitchSource_FeedbackConnector,
+//                   LimitSwitchNormal::LimitSwitchNormal_NormallyOpen );
+          m_motor.OverrideLimitSwitchesEnable(true);
+      }
+
+         /*
+          * Configure Talon SRX Output and Sensor direction.
+          * Invert Motor to have green LEDs when driving Talon Forward
+          * ( Requesting Positive Output ),
+          * Phase sensor to have positive increment when driving Talon Forward
+          * (Green LED)
+          */
+      m_motor.SetSensorPhase(true);   // invert encoder value positive/negative
+      m_motor.SetInverted(false);     // invert direction of motor itself.
+
+                        /* Set relevant frame periods to be at least as fast */
+                        /* as the periodic rate.                             */
+      m_motor.SetStatusFramePeriod(
+                         StatusFrameEnhanced::Status_13_Base_PIDF0,  10, 10 );
+      m_motor.SetStatusFramePeriod(
+                         StatusFrameEnhanced::Status_10_MotionMagic, 10, 10 );
+
+                                         /* Set the peak and nominal outputs */
+      m_motor.ConfigNominalOutputForward( 0, 10 );
+      m_motor.ConfigNominalOutputReverse( 0, 10 );
+      m_motor.ConfigPeakOutputForward(    1, 10 );
+      m_motor.ConfigPeakOutputReverse(   -1, 10 );
+
+            /* Set limits to how much current will be sent through the motor */
+      m_motor.ConfigPeakCurrentDuration(1);  // 1000 milliseconds (for 60 Amps)
+#ifdef SAFETY_LIMITS
+      m_motor.ConfigPeakCurrentLimit(10);       // limit motor power severely
+      m_motor.ConfigContinuousCurrentLimit(10); // to 10 Amps
+#else
+      m_motor.ConfigPeakCurrentLimit(60);        // 60 works here for miniCIMs,
+                                                 // or maybe 40 Amps is enough,
+                                                 // but we reduce to 10, 1, 10
+      m_motor.ConfigContinuousCurrentLimit(60);  // for safety while debugging
+#endif
+      m_motor.EnableCurrentLimit(true);
+
+                                          // Config 100% motor output to 12.0V
+      m_motor.ConfigVoltageCompSaturation( 12.0 );
+      m_motor.EnableVoltageCompensation( false );
+
+                 /* Set Closed Loop PIDF gains in slot0 - see documentation */
+                                                    // if encoder is connected
+      if ( OK == m_motor.ConfigSelectedFeedbackSensor(
+                          FeedbackDevice::CTRE_MagEncoder_Relative, 0, 10 ) ) {
+         m_motor.SelectProfileSlot( 0, 0 );
+         m_motor.Config_kF( 0, 0.15,   10 );
+         m_motor.Config_kP( 0, 0.2,    10 );
+         m_motor.Config_kI( 0, 0.0002, 10 );
+         m_motor.Config_kD( 0, 10.0,   10 );
+      } else {
+         m_motor.SelectProfileSlot( 0, 0 );
+         m_motor.Config_kF( 0, 0.15, 10 );
+         m_motor.Config_kP( 0, 0.0, 10 );
+         m_motor.Config_kI( 0, 0.0, 10 );
+         m_motor.Config_kD( 0, 0.0, 10 );
+      }
+
+                /* Set acceleration and cruise velocity - see documentation */
+      m_motor.ConfigMotionCruiseVelocity( 1500, 10 );
+      m_motor.ConfigMotionAcceleration(   1500, 10 );
+
+               /* Set ramp rate (how fast motor accelerates or decelerates) */
+      m_motor.ConfigClosedloopRamp(0.1);
+      m_motor.ConfigOpenloopRamp(  0.1);
+
+      m_motor.SetNeutralMode( NeutralMode::Coast );
+
+}      // MotorInitTalon()
+
+
    void TeleopInit() override
    {
-      ArmMotorInitSpark( m_ShoulderMotor );
+      ArmMotorInitTalon( m_ExtenderMotor );
+      ArmMotorInitTalon( m_WristMotor );
+      m_ExtenderMotor.ConfigPeakOutputForward(  1.0, 10 );
+      m_ExtenderMotor.ConfigPeakOutputReverse( -1.0, 10 );
+      m_WristMotor.ConfigPeakOutputForward(  1.0, 10 );
+      m_WristMotor.ConfigPeakOutputReverse( -1.0, 10 );
       m_compressor.EnableDigital();
    }
 #endif
@@ -115,11 +223,25 @@ void ArmMotorInitSpark(rev::CANSparkMax &m_motor)
    //          false for robot relative
    void TeleopPeriodic() override
    {
+      static int  iCallCount = 0;
       static bool bGrabberPortState = false;       // Is portside  grabber closed?
       static bool bGrabberStbdState = false;       // Is starboard grabber closed?
 
       static bool bBButton = false;
       static bool bBButton_prev = false;
+
+#ifdef JAG_NOTDEFINED
+      if ( 0 == iCallCount%500 ) {
+	      std::cout << "Compressor Enabled?: " << m_compressor.IsEnabled() <<
+               "  PressureSwitch: " << m_compressor.GetPressureSwitchValue() <<
+	       // units::pressure::pounds_per_square_inch_t
+               "  Pressure: " << m_compressor.GetPressure().value() << " PSI " <<
+	       // units::current::ampere_t
+               "  Current: " << m_compressor.GetCurrent().value() << " A" <<
+	       std::endl;
+      }
+#endif
+      iCallCount++;
 
 
       DriveWithJoystick(true);
@@ -131,9 +253,54 @@ void ArmMotorInitSpark(rev::CANSparkMax &m_motor)
 	             // Be very careful with this motor; it is geared down so
 		     // low that it could easily break things if left here
 		     // at a high amp limit (high torque limit)
-        -frc::ApplyDeadband(m_OperatorController.GetRightY(), 0.10) } *  1.0 );
+        -frc::ApplyDeadband(m_OperatorController.GetRightY(), 0.10) } *  2.0 );
 #else
         -frc::ApplyDeadband(m_OperatorController.GetRightY(), 0.10) } * 12.0 );
+#endif
+                                    // Run the extender motor to extend the arm
+#ifdef JAG_NOTDEFINED
+      if ( 0 == iCallCount%50 ) {
+         std::cout << "LeftTrigger: " << m_OperatorController.GetLeftTriggerAxis() << std::endl;
+         std::cout << "RightTrigger: " << m_OperatorController.GetRightTriggerAxis() << std::endl;
+      }
+#endif
+      if ( 0.0 < m_OperatorController.GetLeftTriggerAxis() ) {
+         m_ExtenderMotor.SetVoltage(
+            units::volt_t{
+        -frc::ApplyDeadband(m_OperatorController.GetLeftTriggerAxis(), 0.10) } *
+#ifdef SAFETY_LIMITS
+	             // Be very careful with this motor; it is geared down so
+		     // low that it could easily break things if left here
+		     // at a high amp limit (high torque limit)
+               2.0 );
+#else
+              12.0 );
+#endif
+      } else if ( 0.0 < m_OperatorController.GetRightTriggerAxis() ) {
+         m_ExtenderMotor.SetVoltage(
+            units::volt_t{
+         frc::ApplyDeadband(m_OperatorController.GetRightTriggerAxis(), 0.10) } *
+#ifdef SAFETY_LIMITS
+	             // Be very careful with this motor; it is geared down so
+		     // low that it could easily break things if left here
+		     // at a high amp limit (high torque limit)
+               2.0 );
+#else
+              12.0 );
+#endif
+      } else {
+         m_ExtenderMotor.SetVoltage( units::volt_t{ 0.0 } );
+      }
+                                    // Run the wrist motor to rotate the arm
+      m_WristMotor.SetVoltage(
+        units::volt_t{
+#ifdef SAFETY_LIMITS
+	             // Be very careful with this motor; it is geared down so
+		     // low that it could easily break things if left here
+		     // at a high amp limit (high torque limit)
+        -frc::ApplyDeadband(m_OperatorController.GetLeftY(), 0.10) } *  2.0 );
+#else
+        -frc::ApplyDeadband(m_OperatorController.GetLeftY(), 0.10) } * 12.0 );
 #endif
 #endif
 
