@@ -76,6 +76,7 @@ private:
        m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation,
        m_backRightLocation};
 
+public:
   //  jag; frc::SwerveDriveOdometry<4> m_odometry{
   //  jag;     m_kinematics,
   //  jag;     m_gyro.GetRotation2d(),
