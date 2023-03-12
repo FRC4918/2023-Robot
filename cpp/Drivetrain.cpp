@@ -55,18 +55,26 @@ void Drivetrain::Reset()
 
 void Drivetrain::UpdateOdometry()
 {
+   static int iCallCount = 0;
+
    // m_odometry.Update(m_gyro.GetRotation2d(),
    //                   {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
    //                    m_backLeft.GetPosition(), m_backRight.GetPosition()});
    m_poseEstimator.Update(m_gyro.GetRotation2d(),
                           {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
                            m_backLeft.GetPosition(), m_backRight.GetPosition()});
+  if ( 0 == iCallCount%50 ) {
+     frc::Pose2d pose = m_poseEstimator.GetEstimatedPosition();
+     std::cout << "X: " << pose.X().value() << ", Y: " << pose.Y().value() <<
+	          ", Rot: " << pose.Rotation().Degrees().value() << std::endl;
+  }
+  iCallCount++;
 
   // Also apply vision measurements. We use 0.3 seconds in the past as an
   // example -- on a real robot, this must be calculated based either on latency
   // or timestamps.
-  m_poseEstimator.AddVisionMeasurement(
-      ExampleGlobalMeasurementSensor::GetEstimatedGlobalPose(
-          m_poseEstimator.GetEstimatedPosition()),
-      frc::Timer::GetFPGATimestamp() - 0.3_s);
+//  m_poseEstimator.AddVisionMeasurement(
+//      ExampleGlobalMeasurementSensor::GetEstimatedGlobalPose(
+//          m_poseEstimator.GetEstimatedPosition()),
+//      frc::Timer::GetFPGATimestamp() - 0.3_s);
 }

@@ -117,7 +117,10 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // resolution.
    // m_driveEncoder.SetDistancePerPulse(2 * std::numbers::pi * kWheelRadius /
    //                                   kEncoderResolution);
-   m_driveEncoder.SetPositionConversionFactor(1.0 / 39.0);
+   m_driveEncoder.SetPositionConversionFactor(1.0 / 26.17 );
+   // We had a value of 1.0/39.0 above, and the robot then measured
+   // 4.09 meters when it actually drove 20 feet (6.096 meters),
+   // so adjust the new divisor: (39.0 * 4.09/6.096) = 26.17
    m_driveEncoder.SetVelocityConversionFactor(1.0 / 2340.0);
 
    std::cout << "Initializing a swerve AnalogInput at " << turningEncoderSlot << std::endl;
