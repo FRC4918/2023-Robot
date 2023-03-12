@@ -24,9 +24,11 @@
    frc::Compressor m_compressor{ 0, frc::PneumaticsModuleType::CTREPCM };
 
    frc::DoubleSolenoid m_grabberPortSolenoid{
-                                  0, frc::PneumaticsModuleType::CTREPCM, 4, 6};
+                               // 0, frc::PneumaticsModuleType::CTREPCM, 4, 6};
+                                  0, frc::PneumaticsModuleType::CTREPCM, 0, 2};
    frc::DoubleSolenoid m_grabberStbdSolenoid{
-                                  0, frc::PneumaticsModuleType::CTREPCM, 5, 7};
+                               // 0, frc::PneumaticsModuleType::CTREPCM, 5, 7};
+                                  0, frc::PneumaticsModuleType::CTREPCM, 1, 3};
    WPI_TalonSRX m_ExtenderMotor{  3 };   // motor for arm extender
    WPI_TalonSRX m_WristMotor{    12 };   // motor for arm wrist
 
@@ -216,6 +218,7 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
       m_WristMotor.ConfigPeakOutputForward(  1.0, 10 );
       m_WristMotor.ConfigPeakOutputReverse( -1.0, 10 );
       m_compressor.EnableDigital();
+//      m_compressor.Disable();
    }
 #endif
 
@@ -229,6 +232,15 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
 
       static bool bBButton = false;
       static bool bBButton_prev = false;
+
+             bool bXButton = m_OperatorController.GetXButton();
+           double dArmDirection = 1.0;
+
+      m_swerve.UpdateOdometry();
+
+      if ( bXButton ) {
+         dArmDirection = -1.0;
+      }
 
 #ifdef JAG_NOTDEFINED
       if ( 0 == iCallCount%500 ) {
@@ -253,18 +265,18 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
 	             // Be very careful with this motor; it is geared down so
 		     // low that it could easily break things if left here
 		     // at a high amp limit (high torque limit)
-        -frc::ApplyDeadband(m_OperatorController.GetRightY(), 0.10) } *  2.0 );
+         frc::ApplyDeadband( dArmDirection * m_OperatorController.GetRightY(), 0.10) } *  2.0 );
 #else
-        -frc::ApplyDeadband(m_OperatorController.GetRightY(), 0.10) } * 12.0 );
+         frc::ApplyDeadband( dArmDirection * m_OperatorController.GetRightY(), 0.10) } * 12.0 );
 #endif
                                     // Run the extender motor to extend the arm
-#ifdef JAG_NOTDEFINED
-      if ( 0 == iCallCount%50 ) {
+#ifndef JAG_NOTDEFINED
+      if ( 2 == iCallCount%50 ) {
          std::cout << "LeftTrigger: " << m_OperatorController.GetLeftTriggerAxis() << std::endl;
          std::cout << "RightTrigger: " << m_OperatorController.GetRightTriggerAxis() << std::endl;
       }
 #endif
-      if ( 0.0 < m_OperatorController.GetLeftTriggerAxis() ) {
+      if ( 0.10 < m_OperatorController.GetLeftTriggerAxis() ) {
          m_ExtenderMotor.SetVoltage(
             units::volt_t{
         -frc::ApplyDeadband(m_OperatorController.GetLeftTriggerAxis(), 0.10) } *
@@ -272,11 +284,11 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
 	             // Be very careful with this motor; it is geared down so
 		     // low that it could easily break things if left here
 		     // at a high amp limit (high torque limit)
-               2.0 );
+               4.0 );
 #else
               12.0 );
 #endif
-      } else if ( 0.0 < m_OperatorController.GetRightTriggerAxis() ) {
+      } else if ( 0.10 < m_OperatorController.GetRightTriggerAxis() ) {
          m_ExtenderMotor.SetVoltage(
             units::volt_t{
          frc::ApplyDeadband(m_OperatorController.GetRightTriggerAxis(), 0.10) } *
@@ -284,7 +296,7 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
 	             // Be very careful with this motor; it is geared down so
 		     // low that it could easily break things if left here
 		     // at a high amp limit (high torque limit)
-               2.0 );
+               4.0 );
 #else
               12.0 );
 #endif
@@ -298,25 +310,27 @@ void ArmMotorInitTalon( WPI_TalonSRX &m_motor )
 	             // Be very careful with this motor; it is geared down so
 		     // low that it could easily break things if left here
 		     // at a high amp limit (high torque limit)
-        -frc::ApplyDeadband(m_OperatorController.GetLeftY(), 0.10) } *  2.0 );
+         frc::ApplyDeadband( dArmDirection * m_OperatorController.GetLeftY(), 0.10) } *  6.0 );
 #else
-        -frc::ApplyDeadband(m_OperatorController.GetLeftY(), 0.10) } * 12.0 );
+         frc::ApplyDeadband( dArmDirection * m_OperatorController.GetLeftY(), 0.10) } * 12.0 );
 #endif
 #endif
 
                                                   // open or close the grabber
-      bBButton = m_controller.GetBButton();
-      if ( bBButton != bBButton_prev ) {
+      bBButton = m_OperatorController.GetBButton();
+      if ( bBButton && !bBButton_prev ) {
          if ( bGrabberPortState || bGrabberStbdState ){
-                                                           // close the grabber
-            m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
-            m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
-            bGrabberPortState = bGrabberStbdState = true; 
-         } else {
-                                                           // open the grabber
+	                                                // open the grabber
             m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
             m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
             bGrabberPortState = bGrabberStbdState = false; 
+
+         } else {
+              						 // close the grabber
+            m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
+            m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
+            bGrabberPortState = bGrabberStbdState = true;                       
+
          }
       }
       bBButton_prev = bBButton;
@@ -334,6 +348,22 @@ private:
    frc::SlewRateLimiter<units::scalar> m_xspeedLimiter{10 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{10 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_rotLimiter{10 / 1_s};
+
+   void DrivetoPose( frc::Pose2d DestinationPose )
+   {
+     frc::Transform2d transform = DestinationPose - 
+                                m_swerve.m_poseEstimator.GetEstimatedPosition();
+//     const auto xSpeed = -m_xspeedLimiter.Calculate(
+//                             transform.X(), 0.10)) *
+//                             Drivetrain::kMaxSpeed;
+//     const auto ySpeed = -m_yspeedLimiter.Calculate(
+//                             transform.Y(), 0.10)) *
+//                             Drivetrain::kMaxSpeed;
+//     const auto rot = 0.0;
+//
+//     m_swerve.Drive(xSpeed, ySpeed, rot, true);
+   }
+
 
    void DriveWithJoystick(bool fieldRelative)
 
