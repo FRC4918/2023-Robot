@@ -28,10 +28,11 @@ public:
    void Drive(units::meters_per_second_t xSpeed,
               units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
               bool fieldRelative);
+   bool DriveUphill( units::meters_per_second_t sSpeed );
    void UpdateOdometry();
 
    static constexpr units::meters_per_second_t kMaxSpeed =
-       3.0_mps; // 3 meters per second TODO: check this value
+       4.5_mps; // 3 meters per second TODO: check this value
    static constexpr units::radians_per_second_t kMaxAngularSpeed{
       2*std::numbers::pi}; // 1 full rotation per second TODO: check this value
 

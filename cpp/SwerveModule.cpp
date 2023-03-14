@@ -9,7 +9,8 @@
 
 #include <frc/geometry/Rotation2d.h>
 
-#define SAFETY_LIMITS 1
+// #define SAFETY_LIMITS 1
+#undef SAFETY_LIMITS
 
 /*---------------------------------------------------------------------*/
 /* MotorInitSpark()                                                    */
@@ -185,7 +186,9 @@ void SwerveModule::SetDesiredState(
 
    // Calculate the turning motor output from the turning PID controller.
    const auto turnOutput = m_turningPIDController.Calculate(
-       units::radian_t{(-((360 * m_turningEncoder.GetAverageValue() / 4070 + m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0}, state.angle.Radians());
+       units::radian_t{ (-((360 * m_turningEncoder.GetAverageValue() / 4070 +
+                                  m_turningEncoderOffset) % 360)) *
+                        std::numbers::pi / 180.0 }, state.angle.Radians() );
 
    const auto turnFeedforward = m_turnFeedforward.Calculate(
        m_turningPIDController.GetSetpoint().velocity);
