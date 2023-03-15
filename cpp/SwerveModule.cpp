@@ -9,8 +9,8 @@
 
 #include <frc/geometry/Rotation2d.h>
 
-// #define SAFETY_LIMITS 1
-#undef SAFETY_LIMITS
+#define SAFETY_LIMITS 1
+// #undef SAFETY_LIMITS
 
 /*---------------------------------------------------------------------*/
 /* MotorInitSpark()                                                    */
@@ -40,10 +40,10 @@ void MotorInitSpark(rev::CANSparkMax &m_motor)
 
    /* Set relevant frame periods to be at least as fast */
    /* as the periodic rate.                             */
-   // See                                                    */
-   // ~/.gradle/caches/transforms-3/*/transformed/           */
-   //   REVLib-cpp-2023.*-headers/rev/CANSparkMaxLowLevel.h  */
-   //   for the default rates.                               */
+   // See
+   // ~/.gradle/caches/transforms-3/*/transformed/
+   //   REVLib-cpp-2023.*-headers/rev/CANSparkMaxLowLevel.h
+   //   for the default rates.
    // m_motor.SetPeriodicFramePeriod(
    //                     rev::CANSparkMaxLowLevel::PeriodicFrame::kStatus0,
    //                     10 );   // default 10?

@@ -113,9 +113,11 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
 
    if ( ( (units::meters_per_second_t)0.5 < xSpeed ) ||
         ( xSpeed < (units::meters_per_second_t)-0.5 ) ) {
-      Drive( (units::meters_per_second_t)xSpeed,
-             (units::meters_per_second_t)0.0,
-             (units::radians_per_second_t)0.0, false);
+// Comment out Drive() temporarily, so the robot doesn't actually move
+// and we can look at the Gyro cout outputs.
+//      Drive( (units::meters_per_second_t)xSpeed,
+//             (units::meters_per_second_t)0.0,
+//             (units::radians_per_second_t)0.0, false);
       bReturnValue = false;     // keep driving
    } else {
       bReturnValue = true;      // finished driving uphill; we are now flat
