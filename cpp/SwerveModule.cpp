@@ -146,7 +146,7 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // flashes, so the settings survive even through a brownout.
    // These statements should be uncommented for at least one deploy-enable
    // Roborio cycle after any of the above settings change, but they should
-   // be commented out between changes, to keep from using all the Roborio's
+   // be commented out between changes, to keep from using all the SparkMax's
    // flash-write cycles, because it has a limited number of flash-write
    // cycles.
    // m_driveMotor.BurnFlash();

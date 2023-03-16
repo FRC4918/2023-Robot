@@ -30,15 +30,15 @@ void Drivetrain::Drive(units::meters_per_second_t xSpeed,
    auto [fl, fr, bl, br] = states;
 
          // As a special case, if all drive arguments are 0.0, then cross
-	 // the swerve modules (put them all at 45 degrees, so the robot
-	 // won't move, and will be difficult to move (even if on a sloping
-	 // charging station, or bumped by another robot).
-	 // This happens only during autonomous;
-	 // if it is desired to make this happen during both autonomous and
-	 // teleop: comment out the "!fieldRelative" line, because
-	 // autonomous maneuvers call this function with that argument false
-	 // when they want to stop the robot completely, but teleop always
-	 // sets that argument true.
+         // the swerve modules (put them all at 45 degrees, so the robot
+         // won't move, and will be difficult to move (even if on a sloping
+         // charging station, or bumped by another robot).
+         // This happens only during autonomous;
+         // if it is desired to make this happen during both autonomous and
+         // teleop: comment out the "!fieldRelative" line, because
+         // autonomous maneuvers call this function with that argument false
+         // when they want to stop the robot completely, but teleop always
+         // sets that argument true.
    if ( ( xSpeed < (units::meters_per_second_t)0.001          ) &&
         (         -(units::meters_per_second_t)0.001 < xSpeed ) &&
         ( ySpeed < (units::meters_per_second_t)0.001          ) &&
@@ -46,10 +46,10 @@ void Drivetrain::Drive(units::meters_per_second_t xSpeed,
         ( !fieldRelative                                      ) &&
         (    rot < (units::radians_per_second_t)0.001         ) &&
         (         -(units::radians_per_second_t)0.001 < rot   )    ) {
-      fl.angle = (frc::Rotation2d)(units::degree_t)-45.0;
-      fr.angle = (frc::Rotation2d)(units::degree_t)45.0;
-      bl.angle = (frc::Rotation2d)(units::degree_t)45.0;
-      br.angle = (frc::Rotation2d)(units::degree_t)-45.0;
+      fl.angle = (frc::Rotation2d)(units::degree_t)45.0;
+      fr.angle = (frc::Rotation2d)(units::degree_t)-45.0;
+      bl.angle = (frc::Rotation2d)(units::degree_t)-45.0;
+      br.angle = (frc::Rotation2d)(units::degree_t)45.0;
    }
 
    if ( 0 == iCallCount%50 )
@@ -89,25 +89,34 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
    // static double prevPitch = 0.0;
    // static double prevRawGyro_xyz_dps[3] = { 0.0, 0.0, 0.0 };
 
-   currPitch = m_gyro.GetPitch();              // get current pitch value
+   // currPitch = m_gyro.GetPitch();              // get current pitch value
+   // Previous line doesn't work because the gyro is mounted sideways, so we
+   // have to use the roll axis of the gyro to find the pitch of the robot.
+   currPitch = m_gyro.GetRoll();              // get current pitch value
+
    m_gyro.GetRawGyro( currRawGyro_xyz_dps );   // get pitch/roll/yaw rates
 
             // The equation below is intended to produce a drive speed which
-	    // goes at a reasonable rate toward the high direction (uphill)
-	    // If the robot is at a 16 degree tilt and not pitching, it will
-	    // produce a speed of 1 meter/second; if at the same pitch but
-	    // also pitching down at 4 degrees/second, the robot will stop.
-	    // If desired, we could use the sSpeed argument to this function
-	    // to give control of xSpeed to callers.
-   const auto xSpeed = (units::meters_per_second_t)
-                                 (currPitch/16.0 - currRawGyro_xyz_dps[1]/4.0);
+            // goes at a reasonable rate toward the high direction (uphill)
+            // If the robot is at a 16 degree tilt and not pitching, it will
+            // produce a speed of 1 meter/second; if at the same pitch but
+            // also pitching down at 4 degrees/second, the robot will stop.
+            // If desired, we could use the sSpeed argument to this function
+            // to give control of xSpeed to callers.
+#define JAG_DEBUG 1
+#ifdef JAG_DEBUG
+   const auto xSpeed = (units::meters_per_second_t)0.0;
+#else
+//   const auto xSpeed = (units::meters_per_second_t)
+//                                 (currPitch/16.0 - currRawGyro_xyz_dps[1]/4.0);
+#endif
 // if ( currRawGyro_xyz_dps[1] )
 
    if ( 1 == iCallCount%10 ) {
-      cout << "DriveUphill: Pitch: " << m_gyro.GetPitch()
+      cout << "DriveUphill: Pitch: " << currPitch
            << " Rates: " << currRawGyro_xyz_dps[0] << "/"
-	   << currRawGyro_xyz_dps[1] << "/"
-	   << currRawGyro_xyz_dps[2] << endl;
+           << currRawGyro_xyz_dps[1] << "/"
+           << currRawGyro_xyz_dps[2] << endl;
       cout << "xSpeed: " << xSpeed.value() << endl;
    }
 
@@ -115,12 +124,16 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
         ( xSpeed < (units::meters_per_second_t)-0.5 ) ) {
 // Comment out Drive() temporarily, so the robot doesn't actually move
 // and we can look at the Gyro cout outputs.
-//      Drive( (units::meters_per_second_t)xSpeed,
-//             (units::meters_per_second_t)0.0,
-//             (units::radians_per_second_t)0.0, false);
+      Drive( (units::meters_per_second_t)xSpeed,
+             (units::meters_per_second_t)0.0,
+             (units::radians_per_second_t)0.0, false);
       bReturnValue = false;     // keep driving
    } else {
-      bReturnValue = true;      // finished driving uphill; we are now flat
+      Drive( (units::meters_per_second_t)0.0,
+             (units::meters_per_second_t)0.0,
+             (units::radians_per_second_t)0.0, false);
+//      bReturnValue = true;      // finished driving uphill; we are now flat
+      bReturnValue = false;      // FOR DEBUG ONLY
    }
 
    // prevPitch = currPitch;
@@ -140,8 +153,8 @@ void Drivetrain::Reset()
                      {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
                       m_backLeft.GetPosition(),  m_backRight.GetPosition()  },
                                       { (units::meter_t)0.0,     // X on field
-	                                (units::meter_t)0.0,     // Y on field
-				        (units::degree_t)0.0 } );  // rotation 
+                                        (units::meter_t)0.0,     // Y on field
+                                        (units::degree_t)0.0 } );  // rotation 
 }
 
 void Drivetrain::UpdateOdometry()
@@ -157,7 +170,7 @@ void Drivetrain::UpdateOdometry()
   if ( 0 == iCallCount%50 ) {
      frc::Pose2d pose = m_poseEstimator.GetEstimatedPosition();
      std::cout << "X: " << pose.X().value() << ", Y: " << pose.Y().value() <<
-	          ", Rot: " << pose.Rotation().Degrees().value() << std::endl;
+                  ", Rot: " << pose.Rotation().Degrees().value() << std::endl;
   }
   iCallCount++;
 
