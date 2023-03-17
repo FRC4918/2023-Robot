@@ -9,7 +9,7 @@
 
 #include <frc/geometry/Rotation2d.h>
 
-#define SAFETY_LIMITS 1
+// #define SAFETY_LIMITS 1
 // #undef SAFETY_LIMITS
 
 /*---------------------------------------------------------------------*/
@@ -112,6 +112,7 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // Initialize both CAN Spark-driven NEO motors.
    MotorInitSpark(m_driveMotor);
    MotorInitSpark(m_turningMotor);
+   m_turningMotor.SetSmartCurrentLimit(10, 5, 5000);
 
    // Set the distance per pulse for the drive encoder. We can simply use the
    // distance traveled for one rotation of the wheel divided by the encoder
@@ -149,8 +150,8 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // be commented out between changes, to keep from using all the SparkMax's
    // flash-write cycles, because it has a limited number of flash-write
    // cycles.
-   // m_driveMotor.BurnFlash();
-   // m_turningMotor.BurnFlash();
+   // m_driveMotor.BurnFlash();       // do this only when config changes.
+   // m_turningMotor.BurnFlash();     // do this only when config changes.
 }
 
 // SwerveModule::SwerveModule(int driveMotorCanID,

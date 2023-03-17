@@ -103,27 +103,45 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
             // also pitching down at 4 degrees/second, the robot will stop.
             // If desired, we could use the sSpeed argument to this function
             // to give control of xSpeed to callers.
-#define JAG_DEBUG 1
+// Comment out Drive() temporarily, so the robot doesn't actually move
+// and we can look at the Gyro and currRawGyro_zyz_dps[] cout outputs.
+// #define JAG_DEBUG 1
+#undef JAG_DEBUG
 #ifdef JAG_DEBUG
    const auto xSpeed = (units::meters_per_second_t)0.0;
 #else
-//   const auto xSpeed = (units::meters_per_second_t)
-//                                 (currPitch/16.0 - currRawGyro_xyz_dps[1]/4.0);
+   double currPitchRate;
+   currPitchRate = std::min(  20.0, currRawGyro_xyz_dps[1] );
+   currPitchRate = std::max( -20.0, currPitchRate );
+      // These numbers work OK, but need to be improved:
+      //                   (currPitch/32.0 - currPitchRate/40.0);
+   auto xSpeed = (units::meters_per_second_t)
+                           (currPitch/48.0 - currPitchRate/80.0);
+   xSpeed = std::min(  Drivetrain::kMaxSpeed, xSpeed );
+   xSpeed = std::max( -Drivetrain::kMaxSpeed, xSpeed );
 #endif
 // if ( currRawGyro_xyz_dps[1] )
 
-   if ( 1 == iCallCount%10 ) {
+   if ( 1 == iCallCount%40 ) {
       cout << "DriveUphill: Pitch: " << currPitch
-           << " Rates: " << currRawGyro_xyz_dps[0] << "/"
+           << " Rates: "
+#ifdef JAG_NOTDEFINED
+	   << currRawGyro_xyz_dps[0] << "/"
+#endif
            << currRawGyro_xyz_dps[1] << "/"
-           << currRawGyro_xyz_dps[2] << endl;
-      cout << "xSpeed: " << xSpeed.value() << endl;
+#ifdef JAG_NOTDEFINED
+           << currRawGyro_xyz_dps[2]
+#endif
+           << " xSpeed: " << xSpeed.value() << endl;
    }
 
+#ifdef JAG_NOTDEFINED
    if ( ( (units::meters_per_second_t)0.5 < xSpeed ) ||
         ( xSpeed < (units::meters_per_second_t)-0.5 ) ) {
-// Comment out Drive() temporarily, so the robot doesn't actually move
-// and we can look at the Gyro cout outputs.
+#else
+   if ( ( 5.0  < currPitch ) ||
+        ( currPitch < -5.0 ) ) {
+#endif
       Drive( (units::meters_per_second_t)xSpeed,
              (units::meters_per_second_t)0.0,
              (units::radians_per_second_t)0.0, false);
@@ -167,11 +185,11 @@ void Drivetrain::UpdateOdometry()
    m_poseEstimator.Update(m_gyro.GetRotation2d(),
                       {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
                        m_backLeft.GetPosition(),  m_backRight.GetPosition()  });
-  if ( 0 == iCallCount%50 ) {
-     frc::Pose2d pose = m_poseEstimator.GetEstimatedPosition();
-     std::cout << "X: " << pose.X().value() << ", Y: " << pose.Y().value() <<
-                  ", Rot: " << pose.Rotation().Degrees().value() << std::endl;
-  }
+// if ( 0 == iCallCount%50 ) {
+//    frc::Pose2d pose = m_poseEstimator.GetEstimatedPosition();
+//    std::cout << "X: " << pose.X().value() << ", Y: " << pose.Y().value() <<
+//                 ", Rot: " << pose.Rotation().Degrees().value() << std::endl;
+// }
   iCallCount++;
 
   // Also apply vision measurements. We use 0.3 seconds in the past as an

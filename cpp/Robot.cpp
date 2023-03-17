@@ -2,7 +2,8 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#define SAFETY_LIMITS 1
+// #define SAFETY_LIMITS 1
+#undef SAFETY_LIMITS
 
 #include <frc/MathUtil.h>
 #include <frc/TimedRobot.h>
@@ -81,6 +82,15 @@ bool ldriver = 0;
    frc::DigitalInput wristReverseLimitDIO1{1};
    frc::DigitalInput extenderForwardReverseLimitDIO2{2};
 
+                                            // create a list of maneuver types
+   enum EXTENDER_POSITION {
+      M_EXTENDER_FULLY_EXTENDED  = 0,
+      M_EXTENDER_MIDDLE          = 1,
+      M_EXTENDER_FULLY_RETRACTED = 2
+   };
+                                // extender position (whether at either limit)
+   enum EXTENDER_POSITION ExtenderPosition = M_EXTENDER_FULLY_RETRACTED;
+
 class Robot : public frc::TimedRobot
 {
 
@@ -113,7 +123,10 @@ private:
                                      rev::CANSparkMax::MotorType::kBrushless};
    rev::SparkMaxRelativeEncoder m_ShoulderEncoder =
                                                  m_ShoulderMotor.GetEncoder();
-   const double m_ShoulderEncoderMin = -210.0; // toward the back of the robot.
+   // The values below work well if the robot is powered up with the
+   // shoulder positioned all the way forward (toward the "front" of the
+   // robot, where the battery is).
+   const double m_ShoulderEncoderMin = -180.0; // toward the back of the robot.
    const double m_ShoulderEncoderMax = 0.0;    // Starting position
 
 //   rev::CANSparkMax m_WristMotor{ WristMotorDeviceID,
@@ -257,11 +270,11 @@ private:
 
       // index 30: test autonomous; forward (+ rotate 90 degrees right), stop
    {  30,  M_GO_TO_POSE,    { (units::foot_t)13.0,
-                              (units::foot_t)-90.0,
+                              (units::foot_t)0.0,    // below was -90.0
                               (units::degree_t)0.0 },  0,   0.0,    false },
    {  31,  M_STOP,          { (units::foot_t)13.0,
-                              (units::foot_t)-90.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },  0,   0.0,    false },
    {  32,  M_TERMINATE_SEQ, { (units::foot_t)13.0,     // wait 3 seconds
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0, 150.0,  false },
@@ -324,7 +337,7 @@ private:
                               (units::foot_t)0.0,
                               (units::degree_t)90.0 },   0,   0.0,    false },
    {  51,  M_STOP,          { (units::foot_t)13.0,
-                              (units::foot_t)90.0,
+                              (units::foot_t)0.0,    // below was 90.0
                               (units::degree_t)0.0 },    0,   0.0,    false },
    {  52,  M_TERMINATE_SEQ, { (units::foot_t)13.0,     // wait 3 seconds
                               (units::foot_t)0.0,
@@ -353,6 +366,33 @@ private:
 
       // index 60: Do nothing -- no movement during autonomous.
    {  60,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  61,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  62,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  63,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  64,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  65,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  66,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  67,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  68,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  69,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
@@ -489,8 +529,8 @@ double limex, limey, limea, limev, limes;
 
    static void VisionThread()
    {
-#define DETECT_APRILTAGS 1
-// #undef DETECT_APRILTAGS 
+// #define DETECT_APRILTAGS 1
+#undef DETECT_APRILTAGS 
 
 #ifdef DETECT_APRILTAGS
       frc::AprilTagDetector detector;
@@ -869,7 +909,7 @@ double limex, limey, limea, limev, limes;
                         transform.Y().value() / 1.0 ) * Drivetrain::kMaxSpeed;
       auto rot =
              m_rotLimiter.Calculate( transform.Rotation().Degrees().value() /
-                                        90.00 ) * Drivetrain::kMaxAngularSpeed;
+                                       180.00 ) * Drivetrain::kMaxAngularSpeed;
 
       xSpeed = std::min( Drivetrain::kMaxSpeed, xSpeed );
       ySpeed = std::min( Drivetrain::kMaxSpeed, ySpeed );
@@ -878,9 +918,9 @@ double limex, limey, limea, limev, limes;
       ySpeed = std::max( -Drivetrain::kMaxSpeed, ySpeed );
       rot    = std::max( -Drivetrain::kMaxAngularSpeed, rot );
 
-      if ( 4 == iCallCount%50 ) {
-         std::cout << "xSpeed: " << xSpeed.value() << std::endl;
-      }
+//    if ( 4 == iCallCount%50 ) {
+//       std::cout << "xSpeed: " << xSpeed.value() << std::endl;
+//    }
 
       m_swerve.Drive(xSpeed, ySpeed, rot, true);
 
@@ -923,8 +963,8 @@ double limex, limey, limea, limev, limes;
 
       iCallCount++;
                                  // Only return true if the robot is flat, and
-                                 // *has been flat* for at least 1.5 seconds.
-      return bReturnValue && ( 75 < iFlatCount );
+                                 // *has been flat* for at least 0.5 seconds.
+      return bReturnValue && ( 25 < iFlatCount );
    }  // DriveToBalance()
 
 
@@ -1126,7 +1166,7 @@ double limex, limey, limea, limev, limes;
       static int iCallCount = 0;
       // static int icmdSeqManeuverCallCount = 0;
 
-      if ( 0 == iCallCount%50 ) {
+      if ( 0 == iCallCount%150 ) {
          cout << "Maneuver Index: " << maneuverIndex << endl;
       }
 
@@ -1162,6 +1202,36 @@ double limex, limey, limea, limev, limes;
       if ( 1 == iRobotInitCallCount++ ) {
          std::thread visionThread( VisionThread );
          visionThread.detach();
+
+         ArmMotorInitSpark( m_ShoulderMotor );
+         ArmMotorInitTalon( m_ExtenderMotor );
+         ArmMotorInitTalon( m_WristMotor );
+
+      // Set the distance per pulse for the drive encoder. We don't know or
+      // care if the distance reported by the m_ShoulderEncoder is correct;
+      // we only care that the m_ShoulderEncoderMin and m_ShoulderEncoderMax
+      // const values are correct, for the limits of the shoulder joint; and
+      // we measured those on the robot.
+         m_ShoulderEncoder.SetPositionConversionFactor( 1.0 / 1.0 );
+         m_ShoulderEncoder.SetVelocityConversionFactor( 1.0 / 1.0 );
+         m_ShoulderMotor.SetSoftLimit(
+                               rev::CANSparkMax::SoftLimitDirection::kForward,
+                               m_ShoulderEncoderMax );   // eg: 15
+         m_ShoulderMotor.SetSoftLimit(
+                               rev::CANSparkMax::SoftLimitDirection::kReverse,
+                               m_ShoulderEncoderMin );   // eg: 0
+         m_ShoulderMotor.EnableSoftLimit(
+                               rev::CANSparkMax::SoftLimitDirection::kForward,
+                               true );
+         m_ShoulderMotor.EnableSoftLimit(
+                               rev::CANSparkMax::SoftLimitDirection::kReverse,
+                               true );
+      // m_ShoulderMotor.BurnFlash();  // Do this whenever the config changes.
+
+         m_ExtenderMotor.ConfigPeakOutputForward(  1.0, 10 );
+         m_ExtenderMotor.ConfigPeakOutputReverse( -1.0, 10 );
+         m_WristMotor.ConfigPeakOutputForward(  1.0, 10 );
+         m_WristMotor.ConfigPeakOutputReverse( -1.0, 10 );
       }
    }  // RobotInit()
 
@@ -1245,8 +1315,8 @@ double limex, limey, limea, limev, limes;
       /* This function is called once when the robot enters Test mode.       */
       /*---------------------------------------------------------------------*/
    void TestInit() override {
-   // m_compressor.EnableDigital();
-      m_compressor.Disable();
+      //   m_compressor.Disable();   // For debug/testing only.
+      m_compressor.EnableDigital();
    }  // TestInit()
 
       /*---------------------------------------------------------------------*/
@@ -1275,8 +1345,8 @@ double limex, limey, limea, limev, limes;
       /*---------------------------------------------------------------------*/
    void AutonomousInit() override {
       RobotInit();
-   // m_compressor.EnableDigital();
-      m_compressor.Disable();
+      //   m_compressor.Disable();   // For debug/testing only.
+      m_compressor.EnableDigital();
       iCallCount = 0;
       m_swerve.Reset();
 
@@ -1316,14 +1386,9 @@ double limex, limey, limea, limev, limes;
    {
       GetAllVariables();
 
-#ifndef JAG_NOTDEFINED
                             // Perform a sequence of maneuvers, transitioning
                             // to next maneuver in the sequence when necessary.
       mSeqIndex = executeManeuverSequence( mSeqIndex );
-#else
-      // DriveWithJoystick(false);
-      DriveToPose( DestinationOne );
-#endif
       m_swerve.UpdateOdometry();
 
 
@@ -1333,36 +1398,10 @@ double limex, limey, limea, limev, limes;
 
    void TeleopInit() override
    {
-      ArmMotorInitSpark( m_ShoulderMotor );
-      ArmMotorInitTalon( m_ExtenderMotor );
-      ArmMotorInitTalon( m_WristMotor );
+      GetAllVariables();
 
-      // Set the distance per pulse for the drive encoder. We don't know or
-      // care if the distance reported by the m_ShoulderEncoder is correct;
-      // we only care that the m_ShoulderEncoderMin and m_ShoulderEncoderMax
-      // const values are correct, for the limits of the shoulder joint; and
-      // we measured those on the robot.
-      m_ShoulderEncoder.SetPositionConversionFactor( 1.0 / 1.0 );
-      m_ShoulderEncoder.SetVelocityConversionFactor( 1.0 / 1.0 );
-      m_ShoulderMotor.SetSoftLimit(
-                               rev::CANSparkMax::SoftLimitDirection::kForward,
-                               m_ShoulderEncoderMax );   // eg: 15
-      m_ShoulderMotor.SetSoftLimit(
-                               rev::CANSparkMax::SoftLimitDirection::kReverse,
-                               m_ShoulderEncoderMin );   // eg: 0
-      m_ShoulderMotor.EnableSoftLimit(
-                               rev::CANSparkMax::SoftLimitDirection::kForward,
-                               true );
-      m_ShoulderMotor.EnableSoftLimit(
-                               rev::CANSparkMax::SoftLimitDirection::kReverse,
-                               true );
-
-      m_ExtenderMotor.ConfigPeakOutputForward(  1.0, 10 );
-      m_ExtenderMotor.ConfigPeakOutputReverse( -1.0, 10 );
-      m_WristMotor.ConfigPeakOutputForward(  1.0, 10 );
-      m_WristMotor.ConfigPeakOutputReverse( -1.0, 10 );
-//      m_compressor.EnableDigital();
-      m_compressor.Disable();
+      //   m_compressor.Disable();   // For debug/testing only.
+      m_compressor.EnableDigital();
    }   // TeleopInit()
 
 
@@ -1384,7 +1423,11 @@ double limex, limey, limea, limev, limes;
 
       static double dWristSpeed = 0.0;
 
+      GetAllVariables();
+
       m_swerve.UpdateOdometry();
+
+      DriveWithJoystick(true);
 
       if ( !bXButton_prev && bXButton ) {
          if ( dArmDirection < 0.0 ) {
@@ -1406,10 +1449,8 @@ double limex, limey, limea, limev, limes;
                std::endl;
       }
 #endif
-      iCallCount++;
 
 
-      DriveWithJoystick(true);
                                     // Run the shoulder motor to rotate the arm
       m_ShoulderMotor.SetVoltage(
         units::volt_t{
@@ -1417,52 +1458,56 @@ double limex, limey, limea, limev, limes;
                      // low that it could easily break things if left here
                      // at a high amp limit (high torque limit)
          frc::ApplyDeadband( dArmDirection * m_OperatorController.GetRightY(),
-                             0.10) } *
-#ifdef SAFETY_LIMITS
-                                        2.0 );
-#else
-                                       12.0 );
-#endif
+                             0.10) } * 12.0 );
+
                                     // Run the extender motor to extend the arm
-      if ( 2 == iCallCount%50 ) {
-         std::cout << "LeftTrigger: " <<
-                       m_OperatorController.GetLeftTriggerAxis() << std::endl;
-         std::cout << "RightTrigger: " <<
-                       m_OperatorController.GetRightTriggerAxis() << std::endl;
+      // if ( 2 == iCallCount%1250 ) {
+      //    std::cout << "LeftTrigger: " <<
+      //               m_OperatorController.GetLeftTriggerAxis() << std::endl;
+      //    std::cout << "RightTrigger: " <<
+      //               m_OperatorController.GetRightTriggerAxis() << std::endl;
+      // }
+      if ( extenderForwardReverseLimitDIO2.Get() ) {
+         ExtenderPosition = M_EXTENDER_MIDDLE;
       }
       if ( 0.10 < m_OperatorController.GetLeftTriggerAxis() ) {
+
+//       if ( M_EXTENDER_FULLY_RETRACTED != ExtenderPosition ) {
+
                      // Be very careful with this motor; it is geared down so
                      // low that it could easily break things if left here
                      // at a high amp limit (high torque limit)
-         m_ExtenderMotor.SetVoltage(
-            units::volt_t{
-        -frc::ApplyDeadband(m_OperatorController.GetLeftTriggerAxis(),
-                            0.10) } *
-#ifdef SAFETY_LIMITS
-                                       4.0 );
-#else
-                                      12.0 );
-#endif
+            m_ExtenderMotor.SetVoltage(
+               units::volt_t{
+           -frc::ApplyDeadband(m_OperatorController.GetLeftTriggerAxis(),
+                               0.10) } * 4.0 );        // increase to * 12.0 ?
+                           // Once we see the black mark, record that position
+            if ( !extenderForwardReverseLimitDIO2.Get() ) {
+               ExtenderPosition = M_EXTENDER_FULLY_RETRACTED;
+            }
+//       }
       } else if ( 0.10 < m_OperatorController.GetRightTriggerAxis() ) {
+
+//       if ( M_EXTENDER_FULLY_EXTENDED != ExtenderPosition ) {
                      // Be very careful with this motor; it is geared down so
                      // low that it could easily break things if left here
                      // at a high amp limit (high torque limit)
-         m_ExtenderMotor.SetVoltage(
-            units::volt_t{
-         frc::ApplyDeadband(m_OperatorController.GetRightTriggerAxis(),
-                            0.10) } *
-#ifdef SAFETY_LIMITS
-                                       4.0 );
-#else
-                                      12.0 );
-#endif
+            m_ExtenderMotor.SetVoltage(
+               units::volt_t{
+            frc::ApplyDeadband(m_OperatorController.GetRightTriggerAxis(),
+                               0.10) } * 4.0 );
+                           // Once we see the black mark, record that position
+            if ( !extenderForwardReverseLimitDIO2.Get() ) {
+               ExtenderPosition = M_EXTENDER_FULLY_EXTENDED;
+            }
+//       }
       } else {
          m_ExtenderMotor.SetVoltage( units::volt_t{ 0.0 } );
       }
                          // Run the wrist motor to rotate the wrist (and claw)
       dWristSpeed = dArmDirection * m_OperatorController.GetLeftY();
-      if ( ( !wristForwardLimitDIO0 && ( 0.0 < dWristSpeed ) ) ||
-           ( !wristReverseLimitDIO1 && ( dWristSpeed < 0.0 ) )    ) {
+//      if ( ( !wristForwardLimitDIO0.Get() && ( 0.0 < dWristSpeed ) ) ||
+//           ( !wristReverseLimitDIO1.Get() && ( dWristSpeed < 0.0 ) )    ) {
          m_WristMotor.SetVoltage(
            units::volt_t{
                      // Be very careful with this motor; it is geared down so
@@ -1474,7 +1519,7 @@ double limex, limey, limea, limev, limes;
 #else
                                        12.0 );
 #endif
-      }
+//      }
 
                                                   // open or close the grabber
       bBButton = m_OperatorController.GetBButton();
@@ -1494,6 +1539,8 @@ double limex, limey, limea, limev, limes;
          }
       }
       bBButton_prev = bBButton;
+
+      iCallCount++;
 
    }   // TeleopPeriodic()
 
