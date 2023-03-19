@@ -114,7 +114,7 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
    currPitchRate = std::min(  20.0, currRawGyro_xyz_dps[1] );
    currPitchRate = std::max( -20.0, currPitchRate );
       // These numbers work OK, but need to be improved:
-      //                   (currPitch/32.0 - currPitchRate/40.0);
+      //                   (currPitch/48.0 - currPitchRate/80.0);
    auto xSpeed = (units::meters_per_second_t)
                            (currPitch/48.0 - currPitchRate/80.0);
    xSpeed = std::min(  Drivetrain::kMaxSpeed, xSpeed );
@@ -122,7 +122,7 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
 #endif
 // if ( currRawGyro_xyz_dps[1] )
 
-   if ( 1 == iCallCount%40 ) {
+   if ( 1 == iCallCount%100 ) {
       cout << "DriveUphill: Pitch: " << currPitch
            << " Rates: "
 #ifdef JAG_NOTDEFINED

@@ -173,30 +173,30 @@ private:
    // index command          and degrees)              arg1   arg1    arg2  
    // ----- ---------------- ------------------------  ----  ------  -------
    // index 00: simple drive autonomous; forward, right, back, balance
-   {   0,  M_GO_TO_POSE,    { (units::foot_t)13.0,  // X (forward)
+   {   0,  M_GO_TO_POSE,    { (units::foot_t).5,  // X (forward)
                               (units::foot_t)0.0,   // Y (sideways)
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   1,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {   1,  M_GO_TO_POSE,    { (units::foot_t)14.0,  // X (forward)
+                              (units::foot_t)0.0,   // Y (sideways)
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {   2,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   2,  M_GO_TO_POSE,    { (units::foot_t)9.0,
+   {   3,  M_GO_TO_POSE,    { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   3,  M_BALANCE,       { (units::foot_t)9.0,
+   {   4,  M_BALANCE,       { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   4,  M_STOP,          { (units::foot_t)9.0,
+   {   5,  M_STOP,          { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   5,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
+   {   6,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {   6,  M_WAIT,          { (units::foot_t)9.0,
+   {   7,  M_WAIT,          { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   1.0,    false },
-   {   7,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
-                              (units::foot_t)-6.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
    {   8,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
@@ -204,26 +204,27 @@ private:
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
+
       // index 10: simple drive autonomous; forward, back, balance
-   {  10,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  10,  M_GO_TO_POSE,    { (units::foot_t).5,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  11,  M_GO_TO_POSE,    { (units::foot_t)9.0,
+   {  11,  M_GO_TO_POSE,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  12,  M_BALANCE,       { (units::foot_t)9.0,
+   {  12,  M_STOP,          { (units::foot_t)15.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  13,  M_WAIT,          { (units::foot_t)15.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    100,   0.0,    false },			      
+   {  14,  M_GO_TO_POSE,    { (units::foot_t)9.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  15,  M_BALANCE,       { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  13,  M_STOP,          { (units::foot_t)9.0,
-                              (units::foot_t)-6.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
-   {  14,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
-                              (units::foot_t)-6.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
-   {  15,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
-                              (units::foot_t)-6.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
-   {  16,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
+   {  16,  M_STOP,          { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
    {  17,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
@@ -232,27 +233,28 @@ private:
    {  18,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
+
    {  19,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
                               (units::foot_t)-6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
       // index 20: simple drive autonomous; forward, left, back, balance
-   {  20,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  20,  M_GO_TO_POSE,    { (units::foot_t).5,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  21,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  21,  M_GO_TO_POSE,    { (units::foot_t)14.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },    0,   0.0,    false },
+   {  22,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  22,  M_GO_TO_POSE,    { (units::foot_t)9.0,
+   {  23,  M_GO_TO_POSE,    { (units::foot_t)9.0,
                               (units::foot_t)6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  23,  M_BALANCE,       { (units::foot_t)9.0,
+   {  24,  M_BALANCE,       { (units::foot_t)9.0,
                               (units::foot_t)6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  24,  M_STOP,          { (units::foot_t)9.0,
-                              (units::foot_t)6.0,
-                              (units::degree_t)0.0 },    0,   0.0,    false },
-   {  25,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
+   {  25,  M_STOP,          { (units::foot_t)9.0,
                               (units::foot_t)6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
    {  26,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
@@ -267,15 +269,15 @@ private:
    {  29,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
                               (units::foot_t)6.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-
+   
       // index 30: test autonomous; forward (+ rotate 90 degrees right), stop
-   {  30,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  30,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,    // below was -90.0
                               (units::degree_t)0.0 },  0,   0.0,    false },
-   {  31,  M_STOP,          { (units::foot_t)13.0,
+   {  31,  M_STOP,          { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },  0,   0.0,    false },
-   {  32,  M_TERMINATE_SEQ, { (units::foot_t)13.0,     // wait 3 seconds
+   {  32,  M_TERMINATE_SEQ, { (units::foot_t)14.0,     // wait 3 seconds
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0, 150.0,  false },
    {  33,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
@@ -301,13 +303,13 @@ private:
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
       // index 40: test autonomous; forward (+ no rotation), stop
-   {  40,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  40,  M_GO_TO_POSE,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  41,  M_STOP,          { (units::foot_t)13.0,
+   {  41,  M_STOP,          { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  42,  M_TERMINATE_SEQ, { (units::foot_t)13.0,     // wait 3 seconds
+   {  42,  M_TERMINATE_SEQ, { (units::foot_t)15.0,     // wait 3 seconds
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0, 150.0,  false },
    {  43,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
@@ -333,13 +335,13 @@ private:
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
       // index 50: test autonomous; forward (+ rotate 90 degrees left), stop
-   {  50,  M_GO_TO_POSE,    { (units::foot_t)13.0,
+   {  50,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
-                              (units::degree_t)90.0 },   0,   0.0,    false },
-   {  51,  M_STOP,          { (units::foot_t)13.0,
+                              (units::degree_t)0.0 },   0,   0.0,    false },
+   {  51,  M_STOP,          { (units::foot_t)14.0,
                               (units::foot_t)0.0,    // below was 90.0
                               (units::degree_t)0.0 },    0,   0.0,    false },
-   {  52,  M_TERMINATE_SEQ, { (units::foot_t)13.0,     // wait 3 seconds
+   {  52,  M_TERMINATE_SEQ, { (units::foot_t)14.0,     // wait 3 seconds
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },    0, 150.0,  false },
    {  53,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
@@ -1104,7 +1106,7 @@ double limex, limey, limea, limev, limes;
       case M_WAIT:
          if ( mSeqPrev.type != mSeq.type ) {          // first call to M_WAIT?
                                          // yes; store number of ticks to wait
-            dWaitCount = (int)mSeq.dArg;
+            dWaitCount = (int)mSeq.iArg;
          } else {
             dWaitCount -= 1.0;
          }
