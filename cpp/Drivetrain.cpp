@@ -16,9 +16,11 @@ using std::setw;
 using std::setfill;         // so we can use "setfill('0') in cout streams
 using std::abs;
 
-void Drivetrain::Drive(units::meters_per_second_t xSpeed,
-                       units::meters_per_second_t ySpeed,
-                       units::radians_per_second_t rot, bool fieldRelative)
+void Drivetrain::Drive( units::meters_per_second_t xSpeed,
+                        units::meters_per_second_t ySpeed,
+                        units::radians_per_second_t rot,
+                        bool fieldRelative,
+                        bool bFreezeDriveMotors )
 {
    auto states = m_kinematics.ToSwerveModuleStates(
        fieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(
@@ -73,10 +75,10 @@ void Drivetrain::Drive(units::meters_per_second_t xSpeed,
    }
    iCallCount++;
 
-   m_frontLeft.SetDesiredState(fl);
-   m_frontRight.SetDesiredState(fr);
-   m_backLeft.SetDesiredState(bl);
-   m_backRight.SetDesiredState(br);
+   m_frontLeft.SetDesiredState(  fl, bFreezeDriveMotors );
+   m_frontRight.SetDesiredState( fr, bFreezeDriveMotors );
+   m_backLeft.SetDesiredState(   bl, bFreezeDriveMotors );
+   m_backRight.SetDesiredState(  br, bFreezeDriveMotors );
 }
 
 
@@ -111,22 +113,33 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
    const auto xSpeed = (units::meters_per_second_t)0.0;
 #else
    double currPitchRate;
-   currPitchRate = std::min(  20.0, currRawGyro_xyz_dps[1] );
-   currPitchRate = std::max( -20.0, currPitchRate );
+            // these were 20.0 and -20.0 (and worked OK) until 19mar:
+   currPitchRate = std::min(  30.0, currRawGyro_xyz_dps[1] );
+   currPitchRate = std::max( -30.0, currPitchRate );
       // These numbers work OK, but need to be improved:
       //                   (currPitch/48.0 - currPitchRate/80.0);
    auto xSpeed = (units::meters_per_second_t)
-                           (currPitch/48.0 - currPitchRate/80.0);
+                           (currPitch/48.0 - currPitchRate/60.0);
    xSpeed = std::min(  Drivetrain::kMaxSpeed, xSpeed );
    xSpeed = std::max( -Drivetrain::kMaxSpeed, xSpeed );
+          // Make sure robot never goes downhill strongly (that the pitch rate
+          // correction factor never overcomes the pitch factor).
+	  // We allow a small (slow) amount of downhill travel, because the
+	  // charging station doesn't seem to start tipping until the robot
+	  // is too far, leading to continual back-and-forth rocking.
+   if ( 0.0 < currPitch ) {             // make sure robot never goes downhill
+      xSpeed = std::max( (units::meters_per_second_t)-0.1, xSpeed );
+   } else {
+      xSpeed = std::min( (units::meters_per_second_t)0.1, xSpeed );
+   }
 #endif
 // if ( currRawGyro_xyz_dps[1] )
 
-   if ( 1 == iCallCount%100 ) {
+   if ( 1 == iCallCount%1000 ) {
       cout << "DriveUphill: Pitch: " << currPitch
            << " Rates: "
 #ifdef JAG_NOTDEFINED
-	   << currRawGyro_xyz_dps[0] << "/"
+           << currRawGyro_xyz_dps[0] << "/"
 #endif
            << currRawGyro_xyz_dps[1] << "/"
 #ifdef JAG_NOTDEFINED
@@ -135,23 +148,17 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
            << " xSpeed: " << xSpeed.value() << endl;
    }
 
-#ifdef JAG_NOTDEFINED
-   if ( ( (units::meters_per_second_t)0.5 < xSpeed ) ||
-        ( xSpeed < (units::meters_per_second_t)-0.5 ) ) {
-#else
    if ( ( 5.0  < currPitch ) ||
         ( currPitch < -5.0 ) ) {
-#endif
       Drive( (units::meters_per_second_t)xSpeed,
              (units::meters_per_second_t)0.0,
-             (units::radians_per_second_t)0.0, false);
+             (units::radians_per_second_t)0.0, false, false );
       bReturnValue = false;     // keep driving
    } else {
       Drive( (units::meters_per_second_t)0.0,
              (units::meters_per_second_t)0.0,
-             (units::radians_per_second_t)0.0, false);
-//      bReturnValue = true;      // finished driving uphill; we are now flat
-      bReturnValue = false;      // FOR DEBUG ONLY
+             (units::radians_per_second_t)0.0, false, false );
+      bReturnValue = true;      // finished driving uphill; we are now flat
    }
 
    // prevPitch = currPitch;

@@ -40,7 +40,8 @@ public:
    // commented out 1/13 MM - doesn't appear to be called anywhere
    // frc::SwerveModuleState GetState() const;
    frc::SwerveModulePosition GetPosition() const;
-   void SetDesiredState(const frc::SwerveModuleState &state);
+   void SetDesiredState( const frc::SwerveModuleState &state,
+		         bool bFreezeDriveMotor = false );
 
 private:
    static constexpr double kWheelRadius = 0.319;

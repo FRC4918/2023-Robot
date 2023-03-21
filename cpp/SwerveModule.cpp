@@ -171,7 +171,8 @@ frc::SwerveModulePosition SwerveModule::GetPosition() const
 }
 
 void SwerveModule::SetDesiredState(
-    const frc::SwerveModuleState &referenceState)
+                                  const frc::SwerveModuleState &referenceState,
+                                  bool bFreezeDriveMotor )
 {
    // Optimize the reference state to avoid spinning further than 90 degrees
    const auto state = frc::SwerveModuleState::Optimize(
@@ -199,6 +200,10 @@ void SwerveModule::SetDesiredState(
    // std::cout << " drive Feed Forward " << driveFeedforward.m_value;
    // std::cout << " turn Feed Forward " << turnFeedforward.value() << std::endl;
    //  Set the motor outputs.
-   m_driveMotor.SetVoltage(units::volt_t{driveOutput} + driveFeedforward);
+   if ( bFreezeDriveMotor ) {
+      m_driveMotor.SetVoltage(units::volt_t{0.0});
+   } else {
+      m_driveMotor.SetVoltage(units::volt_t{driveOutput} + driveFeedforward);
+   }
    m_turningMotor.SetVoltage(units::volt_t{turnOutput} - turnFeedforward);
 }
