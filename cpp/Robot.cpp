@@ -82,7 +82,16 @@ bool ldriver = 0;
    frc::DigitalInput wristReverseLimitDIO1{1};
    frc::DigitalInput extenderForwardReverseLimitDIO2{2};
 
-                                            // create a list of maneuver types
+                                        // create a list of wrist positions
+   enum WRIST_POSITION {
+      M_WRIST_FULLY_BACK    = 0,
+      M_WRIST_MIDDLE        = 1,
+      M_WRIST_FULLY_FORWARD = 2
+   };
+                                // wrist position (whether at either limit)
+   enum WRIST_POSITION WristPosition = M_WRIST_FULLY_BACK;
+
+                                        // create a list of extender positions
    enum EXTENDER_POSITION {
       M_EXTENDER_FULLY_EXTENDED  = 0,
       M_EXTENDER_MIDDLE          = 1,
@@ -126,15 +135,22 @@ private:
    // The values below work well if the robot is powered up with the
    // shoulder positioned all the way forward (toward the "front" of the
    // robot, where the battery is).
-   const double m_ShoulderEncoderMin = -180.0; // toward the back of the robot.
-   const double m_ShoulderEncoderMax = 0.0;    // Starting position
-
+   const double kShoulderEncoderMin = -180.0; // toward the back of the robot.
+   const double kShoulderEncoderMax = 0.0;           // Starting position
+   const double kShoulderPositionOffsetDeg = 120.0;  // Start position (deg)
 //   rev::CANSparkMax m_WristMotor{ WristMotorDeviceID,
 //                                  rev::CANSparkMax::MotorType::kBrushless};
 
    std::shared_ptr<nt::NetworkTable> limenttable =
                nt::NetworkTableInstance::GetDefault().GetTable( "limelight" );
 
+   struct ArmPose {
+                              // Shoulder position (degrees, 0 is straight up)
+      double                 dShoulderPosition;
+      enum EXTENDER_POSITION eExtenderPosition;
+      enum WRIST_POSITION    eWristPosition;
+      bool                   bGrabberClosed;
+   };
                                             // create a list of maneuver types
    enum MANEUVER_TYPE {
       M_TERMINATE_SEQ  = 0,
@@ -476,6 +492,7 @@ private:
       frc::Pose2d CurrentRobotPose;
       frc::Pose2d DesiredRobotPose;
       double initialYaw;
+      struct ArmPose  sArmPose;
       bool   teleop;
       double dLimelightDistanceToGoal;
       double dLimelightDesiredShooterSpeed;
@@ -735,6 +752,23 @@ double limex, limey, limea, limev, limes;
       // sCurrState.yawPitchRoll[0] = (double)gyro.GetAngle();
       // sCurrState.yawPitchRoll[1] = (double)gyro.GetRate();
       // sCurrState.rateXYZ[2]      = (double)sCurrState.yawPitchRoll[1];
+
+       // Set all Arm position values (shoulder, extender, wrist, and grabber)
+                              // Shoulder position (degrees, 0 is straight up)
+             // The full range returned by GetPosition is 0 to -180, and that
+             // is really 270 degrees, so we multiply by 1.5 to make that
+             // conversion.
+             // When in base position, GetPosition() returns 0, and that is
+             // really about +120.0 degrees, so we add that offset.
+	     // The result is a number in degrees, with 0 degrees straight up.
+      sCurrState.sArmPose.dShoulderPosition = m_ShoulderEncoder.GetPosition()
+	                    * 1.6 + kShoulderPositionOffsetDeg;
+                                         // complete code for this later
+      sCurrState.sArmPose.eExtenderPosition = M_EXTENDER_MIDDLE;
+                                      // complete code for this later
+      sCurrState.sArmPose.eWristPosition = M_WRIST_FULLY_BACK;
+                                      // complete code for this later
+      sCurrState.sArmPose.bGrabberClosed = false;
 
       limev = limenttable->GetNumber("tv",0.0);  // valid
       limex = limenttable->GetNumber("tx",0.0);  // x position
@@ -1234,17 +1268,17 @@ double limex, limey, limea, limev, limes;
 
       // Set the distance per pulse for the drive encoder. We don't know or
       // care if the distance reported by the m_ShoulderEncoder is correct;
-      // we only care that the m_ShoulderEncoderMin and m_ShoulderEncoderMax
+      // we only care that the kShoulderEncoderMin and kShoulderEncoderMax
       // const values are correct, for the limits of the shoulder joint; and
       // we measured those on the robot.
          m_ShoulderEncoder.SetPositionConversionFactor( 1.0 / 1.0 );
          m_ShoulderEncoder.SetVelocityConversionFactor( 1.0 / 1.0 );
          m_ShoulderMotor.SetSoftLimit(
                                rev::CANSparkMax::SoftLimitDirection::kForward,
-                               m_ShoulderEncoderMax );   // eg: 15
+                               kShoulderEncoderMax );   // eg: 15
          m_ShoulderMotor.SetSoftLimit(
                                rev::CANSparkMax::SoftLimitDirection::kReverse,
-                               m_ShoulderEncoderMin );   // eg: 0
+                               kShoulderEncoderMin );   // eg: 0
          m_ShoulderMotor.EnableSoftLimit(
                                rev::CANSparkMax::SoftLimitDirection::kForward,
                                true );
@@ -1257,6 +1291,12 @@ double limex, limey, limea, limev, limes;
          m_ExtenderMotor.ConfigPeakOutputReverse( -1.0, 10 );
          m_WristMotor.ConfigPeakOutputForward(  1.0, 10 );
          m_WristMotor.ConfigPeakOutputReverse( -1.0, 10 );
+
+               // record initial arm pose (shoulder, extender, wrist, grabber)
+         sCurrState.sArmPose.dShoulderPosition = kShoulderPositionOffsetDeg;
+         sCurrState.sArmPose.eExtenderPosition = M_EXTENDER_MIDDLE;
+         sCurrState.sArmPose.eWristPosition = M_WRIST_FULLY_BACK;
+         sCurrState.sArmPose.bGrabberClosed = false;
       }
    }  // RobotInit()
 
@@ -1382,7 +1422,7 @@ double limex, limey, limea, limev, limes;
                                    // mSeqIndex can be set to different values,
                                    // based on the console switches.
              // Button switch 1 means the robot is starting at the left side,
-             // button switch 2 means the robit is starting in the middle, and
+             // button switch 2 means the robot is starting in the middle, and
              // button switch 3 means the robot is starting at the right side.
              // Button switch 4 specifies to try to continue onto the charging
              // station, and balance.
@@ -1496,15 +1536,50 @@ double limex, limey, limea, limev, limes;
       }
 #endif
 
-
                                     // Run the shoulder motor to rotate the arm
-      m_ShoulderMotor.SetVoltage(
-        units::volt_t{
+                  // first calculate the gravity correction amount
+		  // DO LATER: correct this for extender and wrist later, too.
+         double dShoulderGravityCorrection =
+                        -0.03 * sin( sCurrState.sArmPose.dShoulderPosition *
+				                   std::numbers::pi / 180.0 );
+         if ( 2 == iCallCount%100 ) {
+            cout << "Shoulder pos: " << sCurrState.sArmPose.dShoulderPosition
+                 << " Shoulder corr: " << dShoulderGravityCorrection
+                 << endl;
+         }
+
+//         if ( ( m_OperatorController.GetRightY() < -0.00 ) ||
+//              ( -0.10 < m_OperatorController.GetRightY()  )    ) {
+            m_ShoulderMotor.SetVoltage(
+              units::volt_t{
                      // Be very careful with this motor; it is geared down so
                      // low that it could easily break things if left here
                      // at a high amp limit (high torque limit)
-         frc::ApplyDeadband( dArmDirection * m_OperatorController.GetRightY(),
-                             0.10) } * 12.0 );
+			     dShoulderGravityCorrection +
+                            frc::ApplyDeadband( dArmDirection *
+                                              m_OperatorController.GetRightY(),
+                                                0.10) } * 12.0 );
+
+            // else (the operator is not commanding shoulder movement) if the
+            // arm is in a specific quadrant, have the motor resist gravity
+//         } else if ( ( m_ShoulderEncoder.GetPosition() < -5.0  ) &&
+//                     ( -40.0 < m_ShoulderEncoder.GetPosition() )    ) {
+                                   // apply enough power to counteract gravity
+            // m_ShoulderMotor.SetVoltage( units::volt_t{-0.5} );
+//            m_ShoulderMotor.SetVoltage(
+//			    units::volt_t{ dShoulderGravityCorrection } );
+
+            // else if the arm is in a different specific quadrant, have the
+            // motor resist gravity in the other direction
+//         } else if ( ( m_ShoulderEncoder.GetPosition() < -90.0 ) &&
+//                     ( -150.0 < m_ShoulderEncoder.GetPosition()  )    ) {
+                                   // apply enough power to counteract gravity
+            // m_ShoulderMotor.SetVoltage( units::volt_t{0.5} );
+//            m_ShoulderMotor.SetVoltage(
+//			    units::volt_t{ dShoulderGravityCorrection } );
+//         } else {
+//            m_ShoulderMotor.SetVoltage( units::volt_t{ 0.0 } );
+//         }
 
                                     // Run the extender motor to extend the arm
       // if ( 2 == iCallCount%1250 ) {
@@ -1560,7 +1635,7 @@ double limex, limey, limea, limev, limes;
       } else {
          m_ExtenderMotor.SetVoltage( units::volt_t{ 0.0 } );
       }
-                         // Run the wrist motor to rotate the wrist (and claw)
+                      // Run the wrist motor to rotate the wrist (and grabber)
       dWristSpeed = dArmDirection * m_OperatorController.GetLeftY();
 //      if ( ( !wristForwardLimitDIO0.Get() && ( 0.0 < dWristSpeed ) ) ||
 //           ( !wristReverseLimitDIO1.Get() && ( dWristSpeed < 0.0 ) )    ) {
@@ -1575,6 +1650,8 @@ double limex, limey, limea, limev, limes;
 #else
                                        12.0 );
 #endif
+//      } else {
+//         m_WristMotor.SetVoltage( units::volt_t{ 0.0 } );
 //      }
 
                                                   // open or close the grabber
@@ -1585,13 +1662,13 @@ double limex, limey, limea, limev, limes;
             m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
             m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
             bGrabberPortState = bGrabberStbdState = false; 
-
+            sCurrState.sArmPose.bGrabberClosed = false;
          } else {
                                                         // close the grabber
             m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
             m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
             bGrabberPortState = bGrabberStbdState = true;                       
-
+            sCurrState.sArmPose.bGrabberClosed = true;
          }
       }
       bBButton_prev = bBButton;
