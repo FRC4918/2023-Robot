@@ -119,7 +119,7 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
       // These numbers work OK, but need to be improved:
       //                   (currPitch/48.0 - currPitchRate/80.0);
    auto xSpeed = (units::meters_per_second_t)
-                           (currPitch/48.0 - currPitchRate/60.0);
+                           (currPitch/48.0 + currPitchRate/60.0);
    xSpeed = std::min(  Drivetrain::kMaxSpeed, xSpeed );
    xSpeed = std::max( -Drivetrain::kMaxSpeed, xSpeed );
           // Make sure robot never goes downhill strongly (that the pitch rate
