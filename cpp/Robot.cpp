@@ -137,7 +137,7 @@ private:
    // robot, where the battery is).
    const double kShoulderEncoderMin = -180.0; // toward the back of the robot.
    const double kShoulderEncoderMax = 0.0;           // Starting position
-   const double kShoulderPositionOffsetDeg = 120.0;  // Start position (deg)
+   const double kShoulderPositionOffsetDeg = 130.0;  // Start position (deg)
 //   rev::CANSparkMax m_WristMotor{ WristMotorDeviceID,
 //                                  rev::CANSparkMax::MotorType::kBrushless};
 
@@ -415,7 +415,7 @@ private:
                               (units::degree_t)0.0 },    0,   0.0,    false },
 
       // index 70: test autonomous: balance and don't move
-   {  70,  M_WAIT,          { (units::foot_t)0.5,
+   {  70,  M_WAIT,          { (units::foot_t)0.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },   50,   0.0,    false },
    {  71,  M_BALANCE,       { (units::foot_t)0.0,
@@ -1637,8 +1637,8 @@ double limex, limey, limea, limev, limes;
       }
                       // Run the wrist motor to rotate the wrist (and grabber)
       dWristSpeed = dArmDirection * m_OperatorController.GetLeftY();
-//      if ( ( !wristForwardLimitDIO0.Get() && ( 0.0 < dWristSpeed ) ) ||
-//           ( !wristReverseLimitDIO1.Get() && ( dWristSpeed < 0.0 ) )    ) {
+      if ( ( wristForwardLimitDIO0.Get() && ( dWristSpeed <= 0.0 ) ) ||
+           ( wristReverseLimitDIO1.Get() && ( 0.0 <= dWristSpeed ) )    ) {
          m_WristMotor.SetVoltage(
            units::volt_t{
                      // Be very careful with this motor; it is geared down so
@@ -1650,9 +1650,9 @@ double limex, limey, limea, limev, limes;
 #else
                                        12.0 );
 #endif
-//      } else {
-//         m_WristMotor.SetVoltage( units::volt_t{ 0.0 } );
-//      }
+      } else {
+         m_WristMotor.SetVoltage( units::volt_t{ 0.0 } );
+      }
 
                                                   // open or close the grabber
       bBButton = m_OperatorController.GetBButton();
@@ -1671,6 +1671,12 @@ double limex, limey, limea, limev, limes;
             sCurrState.sArmPose.bGrabberClosed = true;
          }
       }
+
+//    if ( 0 == iCallCount%50 ) {
+//      cout << "Wrist Forward Enc: " << wristForwardLimitDIO0.Get() << endl;
+//      cout << "Wrist Reverse Enc: " << wristReverseLimitDIO1.Get() << endl;
+//    }
+
       bBButton_prev = bBButton;
 
       iCallCount++;
