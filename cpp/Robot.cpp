@@ -119,6 +119,7 @@ private:
    frc::SlewRateLimiter<units::scalar> m_xspeedLimiter{ 5 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{ 5 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_rotLimiter{ 5 / 1_s};
+   frc::SlewRateLimiter<units::scalar> m_ShoulderLimiter{ 5 / 1_s};
 
    const frc::Rotation2d jagrotzero { (units::degree_t)0.0 };
    // const frc::Pose2d DestinationOne { 13.0, 0.0,  jagrotzero };
@@ -164,6 +165,9 @@ private:
       M_BALANCE        = 5,  // balance on the charging station (teeter-totter)
       M_JUMP           = 6   // Goto a maneuver other than the next one
    };
+
+//   struct sArmPose M_ARM_HOME = { 140.0, M_EXTENDER_FULLY_RETRACTED,
+//                                  0.0, true };
 
                     // create a struct which can contain a full maneuver
                  // (type, desired pose, including yaw (heading), etc.)
@@ -645,7 +649,7 @@ private:
                             0,   0.0,    false },
 #endif
 // #ifdef JAG_UPPER_CUBE_DROP
-   {  70,  M_ARM_TO_POS,    { (units::foot_t)0.0,
+   {  70,  M_ARM_TO_POS,    { (units::foot_t)1.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
                             { 120.0, M_EXTENDER_FULLY_RETRACTED,
@@ -655,39 +659,29 @@ private:
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
                             { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            // { 120.0, M_EXTENDER_DO_NOT_CARE,
+                            // { 120.0, M_EXTENDER_FULLY_RET,
                                     20.0, true },
                             50,   0.0,    false },
-   {  72,  M_ARM_TO_POS,    { (units::foot_t)0.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { 0.0, M_EXTENDER_DO_NOT_CARE,
-                                    70.0, true },
-                            50,   0.0,    false },
-   {  73,  M_ARM_TO_POS,    { (units::foot_t)0.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { -40.0, M_EXTENDER_DO_NOT_CARE,
-                                    -80.0, true },
-                            50,   0.0,    false },
-
-   {  74,  M_ARM_TO_POS,    { (units::foot_t)0.0,
+   {  72,  M_ARM_TO_POS,    { (units::foot_t)9.5,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
                             { -50.0, M_EXTENDER_DO_NOT_CARE,
                                     -80.0, true },
                             50,   0.0,    false },
 
-   {  75,  M_ARM_TO_POS,    { (units::foot_t)0.0,
+   {  73,  M_ARM_TO_POS,    { (units::foot_t)9.5,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
                             { -55.0, M_EXTENDER_DO_NOT_CARE,
                                     -90.0, false },
                             50,   0.0,    false },
+#ifdef JAG_NOTDEFINED
    {  76,  M_GO_TO_POSE,    { (units::foot_t)7.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
                             { -55.0, M_EXTENDER_DO_NOT_CARE,
-                                   -70, false },
+                                   -70.0, false },
                             50,   0.0,    false },
    {  77,  M_ARM_TO_POS,    { (units::foot_t)7.0,
                               (units::foot_t)0.0,
@@ -707,12 +701,50 @@ private:
                             { 120.0, M_EXTENDER_FULLY_EXTENDED,
                                     90.0, true },
                             50,   0.0,    false },
-   {  80,  M_ARM_TO_POS,    { (units::foot_t)7.0,
+#endif
+   {  74,  M_GO_TO_POSE,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 20.0, M_EXTENDER_FULLY_EXTENDED,
-                                    90.0, true },
+                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                                   -90.0, false },
+                            0,   0.0,    false },
+   {  75,  M_STOP,          { (units::foot_t)15.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,
+                                   -90.0, false },
+                            0,   0.0,    false },
+   {  76,  M_WAIT,          { (units::foot_t)9.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,
+                                   -90.0, false },
                             50,   0.0,    false },
+   {  77,  M_GO_TO_POSE,    { (units::foot_t)9.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },
+                            {  100.0, M_EXTENDER_DO_NOT_CARE,
+                                   0.0, false },
+                            50,   0.0,    false },
+   {  78,  M_BALANCE,       { (units::foot_t)9.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,
+                                   0.0, false },
+                            0,   0.0,    false },
+
+   {  79,  M_STOP,          { (units::foot_t)9.0,
+                              (units::foot_t)0.0,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                                   0.0, false },
+                            0,   0.0,    false },
+   {  80,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
+                              (units::foot_t)-6.0,
+                              (units::degree_t)0.0 },
+                            { 0.0, M_EXTENDER_FULLY_RETRACTED,
+                                   M_WRIST_FULLY_BACK, false },
+                            0,   0.0,    false },
 
 // #endif
 #ifdef JAG_MIDDLE_CUBE_DROP
@@ -1316,6 +1348,12 @@ double limex, limey, limea, limev, limes;
 
       frc::Transform2d transform = DestinationPose - 
                                m_swerve.m_poseEstimator.GetEstimatedPosition();
+      if ( iCallCount < 10 ) {
+         cout << "DTP() X/Y/Rot: " << transform.X().value() << "/"
+                                   << transform.Y().value() << "/"
+                                   << transform.Rotation().Degrees().value()
+                                   << endl;
+      }
       auto xSpeed = m_xspeedLimiter.Calculate(
                         transform.X().value() / 1.0 ) * Drivetrain::kMaxSpeed;
       auto ySpeed = m_yspeedLimiter.Calculate(
@@ -1340,10 +1378,10 @@ double limex, limey, limea, limev, limes;
                     // If any (X/Y/Rotation) of the criteria for being
                     // at the desired pose (within 10 cm X and Y, and
                     // within 10 degrees yaw) are still not met...
-      if ( ( transform.X() < (units::length::meter_t)-0.10 ) ||
-           ( (units::length::meter_t)0.10 < transform.X()  ) ||
-           ( transform.Y() < (units::length::meter_t)-0.10 ) ||
-           ( (units::length::meter_t)0.10 < transform.Y()  ) ||
+      if ( ( transform.X() < (units::length::meter_t)-0.20 ) ||
+           ( (units::length::meter_t)0.20 < transform.X()  ) ||
+           ( transform.Y() < (units::length::meter_t)-0.20 ) ||
+           ( (units::length::meter_t)0.20 < transform.Y()  ) ||
            ( transform.Rotation().Degrees() < (units::degree_t)-10.0 ) ||
            ( (units::degree_t)10.0 < transform.Rotation().Degrees()  )    ) {
          bReturnValue = false;  // we are not yet at the desired pose
@@ -1388,27 +1426,53 @@ double limex, limey, limea, limev, limes;
       bool bReturnValue = true;
       static int iCallCount = 0;
 
-      double dShoulderGravityCorrection =
-                        -0.03 * sin( sCurrState.sArmPose.dShoulderPosition *
-				                   std::numbers::pi / 180.0 );
-      double dWristGravityCorrection =
-                        -0.13 * sin( sCurrState.sArmPose.dWristPosition *
-				                   std::numbers::pi / 180.0 );
+                                      // get local copies of desired positions
+      auto dDesShoulder   = sArmPose.dShoulderPosition;
+      auto eDesExtender   = sArmPose.eExtenderPosition;
+      auto dDesWrist      = sArmPose.dWristPosition;
+      auto bDesGrabberClosed = sArmPose.bGrabberClosed;
+                                      // get local copies of current positions
+      auto dCurShoulder   = sCurrState.sArmPose.dShoulderPosition;
+      auto eCurExtender   = sCurrState.sArmPose.eExtenderPosition;
+      auto dCurWrist      = sCurrState.sArmPose.dWristPosition;
+      // bCurGrabberClosed is not used below.
+      // auto bCurGrabberClosed = sCurrState.sArmPose.bGrabberClosed;
+           // modify desired wrist angles to something that is possible
+      if ( dDesWrist < dCurShoulder - 100.0 ) {
+         dDesWrist = dCurShoulder - 100.0;
+      } else if ( dCurShoulder + 60.0 < dDesWrist ) {
+         dDesWrist = dCurShoulder + 60.0;
+      }
 
-      if ( sArmPose.dShoulderPosition + 5 <
-		      sCurrState.sArmPose.dShoulderPosition ) {
-         m_ShoulderMotor.SetVoltage( units::volt_t{ -8.0 +
+      double dShoulderGravityCorrection =
+                       -0.03 * sin( dCurShoulder * std::numbers::pi / 180.0 );
+      double dWristGravityCorrection =
+                       -0.13 * sin( dCurWrist    * std::numbers::pi / 180.0 );
+
+                // compute power to send through shoulder motor (+ is forward)
+      double dShoulderSpeed = ( dDesShoulder - dCurShoulder )/4.0;
+      dShoulderSpeed = std::max( dShoulderSpeed, -12.0 );
+      dShoulderSpeed = std::min( dShoulderSpeed,  12.0 );
+
+      if ( 0 == iCallCount%10000 ) {
+         cout << "ArmToPos: shldrspd: " << dShoulderSpeed << endl;
+      }
+
+      m_ShoulderMotor.SetVoltage( units::volt_t{ dShoulderSpeed +
                                                dShoulderGravityCorrection } );
+
+      if ( dDesShoulder + 10.0 < dCurShoulder ) {
+//       m_ShoulderMotor.SetVoltage( units::volt_t{ -8.0 +
+//                                             dShoulderGravityCorrection } );
 	 bReturnValue = false;
-      } else if ( sCurrState.sArmPose.dShoulderPosition <
-                                        sArmPose.dShoulderPosition - 5.0 ) {
-         m_ShoulderMotor.SetVoltage( units::volt_t{ 8.0 +
-                                               dShoulderGravityCorrection } );
+      } else if ( dCurShoulder < dDesShoulder - 10.0 ) {
+//       m_ShoulderMotor.SetVoltage( units::volt_t{ 8.0 +
+//                                             dShoulderGravityCorrection } );
 	 bReturnValue = false;
       } else {
                                             // should add gravity compensation
-         m_ShoulderMotor.SetVoltage(
-			        units::volt_t{ dShoulderGravityCorrection } );
+//       m_ShoulderMotor.SetVoltage(
+//                              units::volt_t{ dShoulderGravityCorrection } );
       }
 
       if ( extenderForwardReverseLimitDIO2.Get() ) {
@@ -1416,15 +1480,15 @@ double limex, limey, limea, limev, limes;
          sCurrState.sArmPose.eExtenderPosition = M_EXTENDER_MIDDLE;
       }
                                           // if we need to extend the extender
-      if ( ( M_EXTENDER_FULLY_EXTENDED == sArmPose.eExtenderPosition ) &&
-	   ( M_EXTENDER_FULLY_EXTENDED !=
-	                       sCurrState.sArmPose.eExtenderPosition ) ) {
+      if ( ( M_EXTENDER_FULLY_EXTENDED == eDesExtender ) &&
+	   ( M_EXTENDER_FULLY_EXTENDED != eCurExtender ) ) {
                                     // extend the extender (motor forward)
-         m_ExtenderMotor.SetVoltage( units::volt_t{ 6.0 } );
+         m_ExtenderMotor.SetVoltage( units::volt_t{ 12.0 } );
 	 bReturnValue = false;
                            // Once we see the black mark, record that position
-         if ( ( M_EXTENDER_MIDDLE == sCurrState.sArmPose.eExtenderPosition ) &&
-              !extenderForwardReverseLimitDIO2.Get()       ) {
+         if ( ( M_EXTENDER_MIDDLE == eCurExtender ) &&
+              !extenderForwardReverseLimitDIO2.Get()   ) {
+            eCurExtender = M_EXTENDER_FULLY_EXTENDED;
             sCurrState.sArmPose.eExtenderPosition = M_EXTENDER_FULLY_EXTENDED;
             ExtenderPosition = M_EXTENDER_FULLY_EXTENDED;
          }
@@ -1434,11 +1498,12 @@ double limex, limey, limea, limev, limes;
                ( M_EXTENDER_FULLY_RETRACTED !=
 	                       sCurrState.sArmPose.eExtenderPosition ) ) {
                                     // retract the extender (motor backwards)
-         m_ExtenderMotor.SetVoltage( units::volt_t{ -6.0 } );
+         m_ExtenderMotor.SetVoltage( units::volt_t{ -12.0 } );
 	 bReturnValue = false;
                            // Once we see the black mark, record that position
-         if ( ( M_EXTENDER_MIDDLE == sCurrState.sArmPose.eExtenderPosition ) &&
+         if ( ( M_EXTENDER_MIDDLE == eCurExtender ) &&
               !extenderForwardReverseLimitDIO2.Get()       ) {
+            eCurExtender = M_EXTENDER_FULLY_RETRACTED;
             sCurrState.sArmPose.eExtenderPosition = M_EXTENDER_FULLY_RETRACTED;
             ExtenderPosition = M_EXTENDER_FULLY_RETRACTED;
          }
@@ -1447,48 +1512,55 @@ double limex, limey, limea, limev, limes;
       }
 
       if ( 0 == iCallCount%50 ) {
-         cout << "Wraw: " << -m_WristMotor.GetSelectedSensorPosition() << endl;
-         cout << "wrist: " << sArmPose.dWristPosition << " curr: "
-              << sCurrState.sArmPose.dWristPosition << endl;
+      // cout << "Wraw: " << -m_WristMotor.GetSelectedSensorPosition() << endl;
+      // cout << "wrist: " << dDesWrist << " curr: " << dCurWrist << endl;
       }
+                // compute power to send through shoulder motor (+ is forward)
+      double dWristSpeed = ( dDesWrist - dCurWrist )/2.0;
+      dWristSpeed = std::max( dWristSpeed, -12.0 );
+      dWristSpeed = std::min( dWristSpeed,  12.0 );
+
                  // If we need to move the wrist back toward the back of robot
-      if ( ( sArmPose.dWristPosition + 6.0 <
-                                       sCurrState.sArmPose.dWristPosition ) &&
+      if ( ( dDesWrist + 0.0 < dCurWrist ) &&
            ( wristForwardLimitDIO0.Get() ) ) {
-         m_WristMotor.SetVoltage( units::volt_t{ -6.0 +
+         // m_WristMotor.SetVoltage( units::volt_t{ -6.0 +
+         m_WristMotor.SetVoltage( units::volt_t{ dWristSpeed +
                                                   dWristGravityCorrection } );
 	 // bReturnValue = false;   // too tight requirement
 
                  // else if we need to move the wrist forward toward the
                  // front of robot
-      } else if ( ( sCurrState.sArmPose.dWristPosition <
-                                     sArmPose.dWristPosition - 6.0 ) &&
+      } else if ( ( dCurWrist < dDesWrist - 0.0 ) &&
                   ( wristReverseLimitDIO1.Get() ) ) {
-         m_WristMotor.SetVoltage( units::volt_t{  6.0 +
+         // m_WristMotor.SetVoltage( units::volt_t{  6.0 +
+         m_WristMotor.SetVoltage( units::volt_t{  dWristSpeed +
                                                   dWristGravityCorrection } );
 	 // bReturnValue = false;   // too tight requirement
 
                  // else the wrist is where we want it
       } else {
+	      // this should seldom happen (only when limit switches tripped)
          m_WristMotor.SetVoltage( units::volt_t{ 0.0 } );        // stop motor
+      // m_WristMotor.SetVoltage( units::volt_t{  dWristGravityCorrection } );
       }
-      if ( 10.0 < abs( sCurrState.sArmPose.dWristPosition -
-                                               sArmPose.dWristPosition )  ) {
+      if ( 10.0 < abs( dCurWrist - dDesWrist )  ) {
 	 bReturnValue = false;
       }
 
-      if ( sArmPose.bGrabberClosed ) {
+      if ( bDesGrabberClosed ) {
                                                         // close the grabber
          m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
          m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
+         // bCurGrabberClosed = true;   // never used
          sCurrState.sArmPose.bGrabberClosed = true;
       } else {
                                                         // open the grabber
          m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
          m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kReverse);
+         // bCurGrabberClosed = false;   // never used
          sCurrState.sArmPose.bGrabberClosed = false;
       }
-      if ( 0 == iCallCount%50 ) {
+      if ( 0 == iCallCount%10 ) {
          cout << "ArmToPos: shldr: "
               << sArmPose.dShoulderPosition << "/" 
               << sCurrState.sArmPose.dShoulderPosition
@@ -1501,7 +1573,7 @@ double limex, limey, limea, limev, limes;
       }
 
       if ( bReturnValue ) {
-         cout << "ArmToPosition() returning true." << endl;
+         // cout << "ArmToPosition() returning true." << endl;
       }
 
       iCallCount++;
@@ -1655,9 +1727,19 @@ double limex, limey, limea, limev, limes;
          break;
 
       case M_GO_TO_POSE:
+         if ( mSeqPrev.index != mSeq.index ) { // first call to this maneuver?
+            dWaitCount = 10.0;           // yes; store number of ticks to wait
+         } else {                  // (we wait so swerves can orient properly)
+            dWaitCount -= 1.0;
+         }
          // Drive straight to the specified pose.
          // The DriveToPose() function returns true when it is near the pose.
-         bRetVal = DriveToPose( mSeq.DestinationPose, false );
+	 // While the second argument is true, the drive motors won't run;
+	 // this is necessary to fix lurch at the beginning of each maneuver.
+         bRetVal = DriveToPose( mSeq.DestinationPose,
+			        0.0 < dWaitCount );
+                                            // Move the arm if necessary, too.
+         ArmToPosition( mSeq.sArmPose );
 
                                            // If we have driven far enough...
          if ( bRetVal ) {
@@ -1670,7 +1752,28 @@ double limex, limey, limea, limev, limes;
          break;
 
       case M_ARM_TO_POS:
+         if ( mSeqPrev.index != mSeq.index ) { // first call to this maneuver?
+            dWaitCount = 10.0;           // yes; store number of ticks to wait
+         } else {
+            dWaitCount -= 1.0;
+         }
          bRetVal = ArmToPosition( mSeq.sArmPose );
+                     // align swerve modules for next destination (see below).
+         DriveToPose( mSeq.DestinationPose, true );
+                     // prevent going to next maneuver immediately
+		     // (this is to prevent the robot from moving while the
+		     //  grabber is opening, for example).
+	 if ( bRetVal && 0.0 < dWaitCount ) {
+            bRetVal = false;
+	 }
+	    // we should never take longer than 4 seconds to move the arm
+	    // so continue anyway, even if some criteria not yet met.
+	    // This protects against a failed extension, for example;
+	    // without this, this maneuver would wait forever for the
+	    // extender to go all the way out.
+	 if ( dWaitCount < -200.0 ) {
+            bRetVal = true;
+	 }
 
          break;
 
@@ -1697,9 +1800,10 @@ double limex, limey, limea, limev, limes;
          break;
 
       case M_BALANCE:
-         // Drive straight to the specified pose.
-         // The DriveToPose() function returns true when it is near the pose.
+         // Drive to balance point (where robot is flat on charging station).
+         // The DriveToBalance() function returns true when it is balanced.
          bRetVal = DriveToBalance();
+         ArmToPosition( mSeq.sArmPose );
 
                           // If we are balanced (flat on the charging station)
          if ( bRetVal ) {
@@ -1758,6 +1862,7 @@ double limex, limey, limea, limev, limes;
 
             maneuverIndex++;                            // go to next maneuver
          }
+         cout << "New Maneuver Index: " << maneuverIndex << endl;
       }
       iCallCount++;
                              // return either the current maneuver index, or
@@ -2178,7 +2283,7 @@ double limex, limey, limea, limev, limes;
                         -0.13 * sin( sCurrState.sArmPose.dWristPosition *
 				                   std::numbers::pi / 180.0 );
 
-      if ( 0 == iCallCount%50 ) {
+      if ( 0 == iCallCount%5000 ) {
          cout << "wrst: " << sCurrState.sArmPose.dWristPosition << endl;
       }
       dWristSpeed = dArmDirection * m_OperatorController.GetLeftY();
