@@ -32,10 +32,12 @@ public:
    bool DriveUphill( units::meters_per_second_t sSpeed );
    void UpdateOdometry();
 
+        // Both of the below "maximums" are about twice what the robot
+	// can actually do (about 3 meters/second and about 1 rotation/second)
    static constexpr units::meters_per_second_t kMaxSpeed =
-       4.5_mps; // 3 meters per second TODO: check this value
+       5.5_mps; // about 5.5 meters per second
    static constexpr units::radians_per_second_t kMaxAngularSpeed{
-      2*std::numbers::pi}; // 1 full rotation per second TODO: check this value
+      4.0*std::numbers::pi}; // 2 full rotations per second
 
 private:
 
