@@ -119,9 +119,17 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
       // These numbers work OK, but need to be improved:
       //                   (currPitch/48.0 - currPitchRate/80.0);
 // auto xSpeed = (units::meters_per_second_t)
-//                         (currPitch/24.0 + currPitchRate/60.0); // oscillates
+//                         (currPitch/30.0 + currPitchRate/60.0); // oscillates
+//          worked once:   (currPitch/24.0 + currPitchRate/50.0); // oscillates
    auto xSpeed = (units::meters_per_second_t)
-                           (currPitch/30.0 + currPitchRate/60.0);
+                           (currPitch/20.0 + currPitchRate/40.0);
+             // Don't go too extreme in speed, if pitch and pitchrate are both
+             // in the same direction.  This probably means we went too far
+	     // across the charging station, and it started tipping back.
+   if ( ( 0.0 < currPitch     && 0.0 < currPitchRate ) ||
+        ( currPitchRate < 0.0 && currPitch     < 0.0 )    ) {
+      xSpeed = (units::meters_per_second_t)(currPitch/20.0);
+   }
    xSpeed = std::min(  Drivetrain::kMaxSpeed, xSpeed );
    xSpeed = std::max( -Drivetrain::kMaxSpeed, xSpeed );
           // Make sure robot never goes downhill strongly (that the pitch rate
@@ -130,9 +138,9 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
 	  // charging station doesn't seem to start tipping until the robot
 	  // is too far, leading to continual back-and-forth rocking.
    if ( 0.0 < currPitch ) {             // make sure robot never goes downhill
-      xSpeed = std::max( (units::meters_per_second_t)-0.1, xSpeed );
+      xSpeed = std::max( (units::meters_per_second_t)-0.2, xSpeed );
    } else {
-      xSpeed = std::min( (units::meters_per_second_t)0.1, xSpeed );
+      xSpeed = std::min( (units::meters_per_second_t)0.2, xSpeed );
    }
 #endif
 // if ( currRawGyro_xyz_dps[1] )
