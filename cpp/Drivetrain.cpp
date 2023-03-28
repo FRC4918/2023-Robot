@@ -137,10 +137,14 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
 	  // We allow a small (slow) amount of downhill travel, because the
 	  // charging station doesn't seem to start tipping until the robot
 	  // is too far, leading to continual back-and-forth rocking.
+	  // 0.2 worked well inside, with charging station on carpet;
+	  // 0.1 worked better with charging station on slick wood sliders
+	  // (lower friction), which is probably more similar to the real
+	  // charging station.
    if ( 0.0 < currPitch ) {             // make sure robot never goes downhill
-      xSpeed = std::max( (units::meters_per_second_t)-0.2, xSpeed );
+      xSpeed = std::max( (units::meters_per_second_t)-0.1, xSpeed );
    } else {
-      xSpeed = std::min( (units::meters_per_second_t)0.2, xSpeed );
+      xSpeed = std::min( (units::meters_per_second_t)0.1, xSpeed );
    }
 #endif
 // if ( currRawGyro_xyz_dps[1] )
