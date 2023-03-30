@@ -157,8 +157,22 @@ private:
 
    struct ArmPose M_ARMPOS_HOME   = { 140.0, M_EXTENDER_FULLY_RETRACTED,
                                       -90.0, true };
-   struct ArmPose M_ARMPOS_HICONE = { -60.0, M_EXTENDER_FULLY_EXTENDED,
+   
+   struct ArmPose M_ARMPOS_HICONE = { -50.0, M_EXTENDER_FULLY_EXTENDED,
                                       -70.0, true };
+  
+   struct ArmPose M_ARMPOS_LOCONE = { -60.0, M_EXTENDER_FULLY_RETRACTED,
+                                      -70.0, true };
+
+   struct ArmPose M_ARMPOS_FRONTGRAB = { 125.0, M_EXTENDER_FULLY_EXTENDED,
+                                         80.0, true };
+
+   struct ArmPose M_ARMPOS_BACKGRAB  = { -125.0, M_EXTENDER_FULLY_EXTENDED,
+                                         -80.0, true };
+
+   struct ArmPose M_ARMPOS_HUMNPLYRSTATN = { 45.0, M_EXTENDER_FULLY_RETRACTED,
+                                             80.0, true };
+
 
                     // create a struct which can contain a full maneuver
                     // (type, desired pose, including yaw (heading), etc.)
@@ -1457,7 +1471,7 @@ double limex, limey, limea, limev, limes;
        // Set all Arm position values (shoulder, extender, wrist, and grabber)
                               // Shoulder position (degrees, 0 is straight up)
              // The full range returned by GetPosition is 0 to -180, and that
-             // is really 270 degrees, so we multiply by 1.5 to make that
+             // is really ~300 degrees, so we multiply by 1.69 to make that
              // conversion.
              // When in base position, GetPosition() returns 0, and that is
              // really about +120.0 degrees, so we add that offset.
@@ -1474,11 +1488,15 @@ double limex, limey, limea, limev, limes;
                                    // fully back (toward back robot) is 0;
                                    // fully forward is 2306 (we measured this)
                                    // NO: fully forward is 2306 (we measured this)
-             // compute wrist position, relative to straight up (+ is forward)
+             // compute wrist position, relative to straight up (+ is forward,
+             // once we invert the encoder report, since that is backward)
              // This depends on the arm position as well as the wrist motor.
-      sCurrState.sArmPose.dWristPosition =     // (once we invert it)
-           -m_WristMotor.GetSelectedSensorPosition() * 210.0 / 2306.0 - 140.0 +
+      sCurrState.sArmPose.dWristPosition =
+          -m_WristMotor.GetSelectedSensorPosition() * 210.0 / 2306.0 - 140.0 +
            sCurrState.sArmPose.dShoulderPosition;
+      if ( 0 == iCallCount%500 ) {     // every 10 seconds
+           cout << "WR: " << m_WristMotor.GetSelectedSensorPosition() << endl;
+      }
                            // Don't set here; this value is maintained when we
                            // close or open the grabber.
       // sCurrState.sArmPose.bGrabberClosed = 
@@ -1772,12 +1790,66 @@ double limex, limey, limea, limev, limes;
                  // retracting/extending
       if ( ( ( ( M_EXTENDER_FULLY_RETRACTED == eDesExtender ) &&
                ( M_EXTENDER_FULLY_RETRACTED != eCurExtender )    ) ||
-             ( M_EXTENDER_FULLY_EXTENDED  == eDesExtender )    ) &&
+             ( ( M_EXTENDER_FULLY_EXTENDED  == eDesExtender ) &&
+               ( M_EXTENDER_FULLY_EXTENDED  != eCurExtender )    ) ) &&
            ( 125.0 < dDesShoulder ) ) {
          dDesShoulder = 115.0;
+               // Don't let extender move until shoulder is in a safe position
+         if ( 125.0 < dCurShoulder ) {
+            eDesExtender = M_EXTENDER_DO_NOT_CARE;
+         }
          bReturnValue = false;  // Don't allow this function to say it is
                                 // complete until condition is no longer true
                                 // (extender is fully retracted or extended).
+      }
+            // If up near the top of the arc, move the wrist flat temporarily,
+            // to prevent going above the height limit.
+      if ( ( -45.0 < dCurShoulder ) && ( dCurShoulder < 45.0  ) ) {
+                              // if we need to go over the top (back to front)
+         if ( ( dCurShoulder < -5.0 ) && ( 5.0 < dDesShoulder ) ) {
+                                       // if wrist is already pointing forward
+            if ( dCurShoulder < dCurWrist - 10.0 ) {
+               dDesWrist = 90.0;       // point it flat forward
+            } else {
+               dDesWrist = -90.0;      // else make it flat backwards
+            }
+            bReturnValue = false;    // Don't allow function to say it is done
+
+                         // else if we need to go over the top (front to back)
+         } else if ( ( dDesShoulder < 0.0 ) && ( 0.0 < dCurShoulder ) ) {
+                               // if wrist is already pointing forward
+                               // (in the direction of travel toward the back)
+            if ( dCurWrist + 10.0 < dCurShoulder ) {
+               dDesWrist = -90.0;   // point it flat toward back of robot
+            } else {
+               dDesWrist =  90.0;   // else make it flat toward front of robot
+            }
+            bReturnValue = false;    // Don't allow function to say it is done
+         }
+      }
+            // If in the top semicircle, don't try to extend the extender.
+      if ( ( -90.0 < dCurShoulder ) && ( dCurShoulder < 90.0  ) ) {
+         if ( M_EXTENDER_FULLY_EXTENDED == eDesExtender ) {
+            eDesExtender = M_EXTENDER_DO_NOT_CARE;
+            // Do not set bReturnValue = false here, so the maneuver can
+            // complete even if the arm is not fully extended.
+         }
+      }
+            // If in the front and angled down, and must extend extender...
+      if ( ( 90.0 < dCurShoulder ) &&
+           ( M_EXTENDER_FULLY_EXTENDED == eDesExtender ) &&
+           ( M_EXTENDER_FULLY_EXTENDED != eCurExtender )     ) {
+               // then don't allow it to rise above 110 degrees until extended
+            dDesShoulder = std::max( 110.0, dDesShoulder );
+            bReturnValue = false;    // Don't allow function to say it is done
+
+            // else if in the back and angled down, and must extend extender...
+      } else if ( ( dCurShoulder < -90.0 ) &&
+                  ( M_EXTENDER_FULLY_EXTENDED == eDesExtender ) &&
+                  ( M_EXTENDER_FULLY_EXTENDED != eCurExtender )     ) {
+               // then don't allow it to rise above 110 degrees until extended
+            dDesShoulder = std::min( -110.0, dDesShoulder );
+            bReturnValue = false;    // Don't allow function to say it is done
       }
 
       double dShoulderGravityCorrection =
@@ -1786,7 +1858,15 @@ double limex, limey, limea, limev, limes;
                        -0.13 * sin( dCurWrist    * std::numbers::pi / 180.0 );
 
                 // compute power to send through shoulder motor (+ is forward)
-      double dShoulderSpeed = ( dDesShoulder - dCurShoulder )/4.0;
+                // 4 degrees out of position results in 1 volt forward, minus
+                // any arm speed correction. After multiplying the arm speed
+                // by 1.69/60.0, the result is in degrees/second.  Dividing
+                // that by 4.0 means we'll get one volt subtracted from the
+                // arm drive force when it's moving at 4 degrees/second.
+         //  At the end of the GetVelocity() term;
+         //  /4.0 is jerky. 40.0 no effect, 8.0 is smooth, 16.0 OK too.
+      double dShoulderSpeed = ( dDesShoulder - dCurShoulder )/4.0
+                       - m_ShoulderEncoder.GetVelocity() * 1.69 / 60.0 / 16.0;
       dShoulderSpeed = std::max( dShoulderSpeed, -12.0 );
       dShoulderSpeed = std::min( dShoulderSpeed,  12.0 );
 
@@ -1836,7 +1916,14 @@ double limex, limey, limea, limev, limes;
       }
 
                    // compute power to send through wrist motor (+ is forward)
-      double dWristSpeed = ( dDesWrist - dCurWrist )/2.0;
+                   // jag; 30mar2023 -- I reduced the denominator of the next
+                   // expression from 2.0 to 1.0 to double the power of the
+                   // wrist motor, because the extra friction from the new
+                   // wrist means it could never reach a setpoint.
+                   // It was about 15 degrees off all the time, but with this
+                   // change it is only off about 6 degrees now.
+                   // But it'll be much better to eliminate that friction!
+      double dWristSpeed = ( dDesWrist - dCurWrist )/1.0;   // jag; was /2.0
       dWristSpeed = std::max( dWristSpeed, -12.0 );
       dWristSpeed = std::min( dWristSpeed,  12.0 );
 
@@ -1958,15 +2045,15 @@ double limex, limey, limea, limev, limes;
                sCurrState.sArmPose.eExtenderPosition =
                                                    M_EXTENDER_FULLY_RETRACTED;
             }
-	      // else if the override button is pressed
-	 } else if ( m_OperatorController.GetYButton() ) {
+              // else if the override button is pressed
+         } else if ( m_OperatorController.GetYButton() ) {
             m_ExtenderMotor.SetVoltage( units::volt_t{ -3.50 } );
          } else {
-                 // as a fail-safe, allow pushing at a very low power,
-                 // in case the extenderForwardReverseLimitDIO2 sensor failed.
-            // m_ExtenderMotor.SetVoltage( units::volt_t{ -3.50 } );
-            // NO: Brian wanted me to change this to remove the fail-safe;
-	    // no motor movement at all once the limit is reached.
+                // as a fail-safe, we could allow pushing at a very low power,
+                // in case the extenderForwardReverseLimitDIO2 sensor failed.
+                // m_ExtenderMotor.SetVoltage( units::volt_t{ -3.50 } );
+            // NO: we have instead created an override button (controller "A")
+            // so no motor movement at all here once the limit is reached.
             m_ExtenderMotor.SetVoltage( units::volt_t{ 0.0 } );
          }
       } else if ( 0.10 < m_OperatorController.GetRightTriggerAxis() ) {
@@ -1984,7 +2071,7 @@ double limex, limey, limea, limev, limes;
                sCurrState.sArmPose.eExtenderPosition =
                                                      M_EXTENDER_FULLY_EXTENDED;
             }
-	 } else if ( m_OperatorController.GetYButton() ) {
+         } else if ( m_OperatorController.GetYButton() ) {
             m_ExtenderMotor.SetVoltage( units::volt_t{ 3.50 } );
          } else {
                  // as a fail-safe, allow pushing at a very low power,
@@ -2184,7 +2271,7 @@ double limex, limey, limea, limev, limes;
          }
          if ( bRetVal ) {
             cout << "EM: ArmToPos() completed, continuing..." << endl;
-	 }
+         }
             // we should never take longer than 4 seconds to move the arm
             // so continue anyway, even if some criteria not yet met.
             // This protects against a failed extension, for example;
@@ -2396,13 +2483,13 @@ double limex, limey, limea, limev, limes;
       }
 
       nt::NetworkTableInstance::GetDefault().GetTable("limelight")->
-	                               PutNumber( "pipeline", pipelineindex );
+                                       PutNumber( "pipeline", pipelineindex );
       // 0 = Vision processing mode, lights auto
       // 1 = Drivermode, lights off
       nt::NetworkTableInstance::GetDefault().GetTable("limelight")->
-	                               PutNumber( "camMode", ldriver );
+                                       PutNumber( "camMode", ldriver );
       nt::NetworkTableInstance::GetDefault().GetTable("limelight")->
-	                               PutNumber( "ledMode", ldriver );
+                                       PutNumber( "ledMode", ldriver );
 
       std::vector<double> lcam_pose_target =
                    limenttable->GetNumberArray("tid", std::vector<double>(6));
@@ -2485,17 +2572,19 @@ double limex, limey, limea, limev, limes;
       } else if ( BUTTON_SWITCH1 && BUTTON_SWITCH3 ) {
          mSeqIndex = 120;         // Do nothing auto (stop, end) 
       } else if ( BUTTON_SWITCH1 && BUTTON_SWITCH4 ) {
-         mSeqIndex = 60;         // simple auto (forward, right, back, balance) 
+         mSeqIndex = 60;         // (score, forward left, right, back, balance) 
       } else if ( BUTTON_SWITCH2 && BUTTON_SWITCH4 ) {
-         mSeqIndex = 80;               // simple auto (forward, back, balance)
+         mSeqIndex = 80;         // (score, forward straight, back, balance)
       } else if ( BUTTON_SWITCH3 && BUTTON_SWITCH4 ) {
-         mSeqIndex = 100;        // simple auto (forward, left, back, balance)
+         mSeqIndex = 100;        // (score, forward right, left, back, balance)
       } else if ( BUTTON_SWITCH1 ) {
-         mSeqIndex =  0;         // forward, then face right
+         mSeqIndex =  0;         // (score, forward left, try to grab cube,
+                                 // then back and score again.
       } else if ( BUTTON_SWITCH2 ) {
-         mSeqIndex = 20;         // forward, continue facing forward
+         mSeqIndex = 20;         // score, forward straight, continue facing
+                                 // forward
       } else if ( BUTTON_SWITCH3 ) {
-         mSeqIndex = 40;         // forward, then face left 
+         mSeqIndex = 40;         // score, forward right, stop
       } else {
          mSeqIndex =  120;  // TEMPORARY: do nothing (for shop safety)
 //       mSeqIndex =  80;  // DEFAULT auto sequence: no switch flipped, so
@@ -2574,12 +2663,26 @@ double limex, limey, limea, limev, limes;
       }
 #endif
 
-if ( m_OperatorController.GetAButton() ) {
-   ArmToPosition( M_ARMPOS_HOME, false );    // Go to home position, without
-					     // modifying the grabber.
-} else {
-   ArmByJoysticks();
-}  // if no "ArmToPosition()" button pressed
+      int iConPOV = m_OperatorController.GetPOV();
+
+      if ( m_OperatorController.GetAButton() ) {
+         ArmToPosition( M_ARMPOS_HOME, false );   // Go to home position,
+                                                  // without modifying grabber
+      } else if (   0 == iConPOV ) {
+         ArmToPosition( M_ARMPOS_HICONE, false ); // high cone scoring position
+      } else if (  45 == iConPOV ) {
+         ArmToPosition( M_ARMPOS_HUMNPLYRSTATN, false ); // human player statn
+      } else if (  90 == iConPOV ) {
+         ArmToPosition( M_ARMPOS_FRONTGRAB, false ); // Low front pickup
+      } else if ( 180 == iConPOV ) { 
+         ArmToPosition( M_ARMPOS_LOCONE, false ); // low cone scoring position
+      } else if ( 270 == iConPOV ) {
+         ArmToPosition( M_ARMPOS_BACKGRAB, false );  // Low back pickup
+        // m_OperatorController.SetRumble(
+                             // frc::GenericHID::RumbleType::kBothRumble, 0.5 );
+      } else {
+         ArmByJoysticks();
+      }  // if no "ArmToPosition()" button pressed
  
                                                   // open or close the grabber
       bBButton = m_OperatorController.GetBButton();
