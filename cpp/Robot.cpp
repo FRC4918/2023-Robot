@@ -164,11 +164,11 @@ private:
    struct ArmPose M_ARMPOS_LOCONE = { -60.0, M_EXTENDER_FULLY_RETRACTED,
                                       -70.0, true };
 
-   struct ArmPose M_ARMPOS_FRONTGRAB = { 125.0, M_EXTENDER_FULLY_EXTENDED,
+   struct ArmPose M_ARMPOS_FRONTGRAB = { 120.0, M_EXTENDER_FULLY_EXTENDED,
                                          80.0, true };
 
-   struct ArmPose M_ARMPOS_BACKGRAB  = { -125.0, M_EXTENDER_FULLY_EXTENDED,
-                                         -80.0, true };
+   struct ArmPose M_ARMPOS_BACKGRAB  = { -140.0, M_EXTENDER_FULLY_EXTENDED,
+                                         -90.0, true };
 
    struct ArmPose M_ARMPOS_HUMNPLYRSTATN = { 45.0, M_EXTENDER_FULLY_RETRACTED,
                                              80.0, true };
@@ -869,31 +869,31 @@ private:
                                    -90.0, false },
                             0,   0.0,    false },
    { 105,  M_GO_TO_POSE,    { (units::foot_t)14.0,
-                              (units::foot_t)3.0,     // should be 6.0
+                              (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    { 106,  M_GO_TO_POSE,    { (units::foot_t)7.0,     // was 9.0
-                              (units::foot_t)3.0,     // should be 6.0
+                              (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    { 107,  M_BALANCE,       { (units::foot_t)7.0,     // was 9.0
-                              (units::foot_t)3.0,     // should be 6.0
+                              (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_DO_NOT_CARE,
                                 0.0, false },
                             0,   0.0,    false },
    { 108,  M_STOP,          { (units::foot_t)7.0,     // was 9.0
-                              (units::foot_t)3.0,     // should be 6.0
+                              (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
    { 109,  M_TERMINATE_SEQ, { (units::foot_t)7.0,     // was 9.0
-                              (units::foot_t)3.0,     // should be 6.0
+                              (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                               0.0, false },
@@ -1291,14 +1291,16 @@ double limex, limey, limea, limev, limes;
 
                                        // Get the USB camera from CameraServer
       cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
-      camera.SetResolution(640, 480);                    // Set the resolution
+      // camera.SetResolution(640, 480);                    // Set the resolution
+      camera.SetResolution(320, 240);                    // Set the resolution
       camera.SetExposureManual(25);
 
                        // Get a CvSink. This will capture Mats from the Camera
       cs::CvSink cvSink = frc::CameraServer::GetVideo();
               // Setup a CvSource. This will send images back to the Dashboard
       cs::CvSource outputStream =
-          frc::CameraServer::PutVideo("DriveCam", 640, 480);
+          // frc::CameraServer::PutVideo("DriveCam", 640, 480);
+          frc::CameraServer::PutVideo("DriveCam", 320, 480);
 
       cv::Mat mat;     // Mats are very memory expensive. Lets reuse this Mat.
 #ifdef DETECT_APRILTAGS
@@ -1663,7 +1665,7 @@ double limex, limey, limea, limev, limes;
 
 
      /* DriveToPose()  drive the robot to the specified pose (X,Y,rotation) */
-     /* the first argument is he desired pose, and the second argument      */
+     /* the first argument is the desired pose, and the second argument     */
      /* specifies whether the drive motors will be run; if the second       */
      /* argument is true, only the turning motors of the swerve will be     */
      /* run (that allows the swerve modules to orient themselves without    */
@@ -1866,7 +1868,7 @@ double limex, limey, limea, limev, limes;
          //  At the end of the GetVelocity() term;
          //  /4.0 is jerky. 40.0 no effect, 8.0 is smooth, 16.0 OK too.
       double dShoulderSpeed = ( dDesShoulder - dCurShoulder )/4.0
-                       - m_ShoulderEncoder.GetVelocity() * 1.69 / 60.0 / 16.0;
+                       - m_ShoulderEncoder.GetVelocity() * 1.69 / 60.0 / 8.0;
       dShoulderSpeed = std::max( dShoulderSpeed, -12.0 );
       dShoulderSpeed = std::min( dShoulderSpeed,  12.0 );
 
@@ -1963,7 +1965,7 @@ double limex, limey, limea, limev, limes;
             sCurrState.sArmPose.bGrabberClosed = false;
          }
       }   // if ( bMoveGrabber )
-      if ( 0 == iCallCount%10 ) {
+      if ( 0 == iCallCount%100 ) {
          cout << "ArmToPos: shldr: "
               << sArmPose.dShoulderPosition << "/" 
               << sCurrState.sArmPose.dShoulderPosition
@@ -2153,7 +2155,7 @@ double limex, limey, limea, limev, limes;
          // values when you pull to the right by default.
       auto rot = -m_rotLimiter.Calculate(
                     frc::ApplyDeadband(m_DriveController.GetRightX(), 0.10)) *
-                       Drivetrain::kMaxAngularSpeed;
+                       Drivetrain::kMaxAngularSpeed * dSpeedFactor;
 
                    // If the driver is pulling the right controller backward,
                    // slow down the rotation rate (pulled all the way back
@@ -2162,7 +2164,6 @@ double limex, limey, limea, limev, limes;
       if ( 0.5 < m_DriveController.GetRightY() ) {
          rot = rot * ( 1.01 - m_DriveController.GetRightY() );
       }
-
       if ( m_DriveController.GetLeftBumper() ) {
          rot = -Drivetrain::kMaxAngularSpeed;
       } else if ( m_DriveController.GetRightBumper() ) {
