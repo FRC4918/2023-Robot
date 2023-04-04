@@ -170,10 +170,10 @@ private:
    struct ArmPose M_ARMPOS_BACKGRAB  = { -140.0, M_EXTENDER_FULLY_EXTENDED,
                                          -90.0, true };
 
-   struct ArmPose M_ARMPOS_HUMNPLYRSTATN = { 45.0, M_EXTENDER_FULLY_RETRACTED,
-                                             80.0, true };
+   struct ArmPose M_ARMPOS_HUMNPLYRSTATN = { 25.0, M_EXTENDER_FULLY_RETRACTED,
+                                             86.0, true };
 
-
+   
                     // create a struct which can contain a full maneuver
                     // (type, desired pose, including yaw (heading), etc.)
    struct maneuver {
@@ -208,13 +208,15 @@ private:
    {   0,  M_ARM_TO_POS,    { (units::foot_t)1.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+   // next line was FULLY_RETRACTED  (all below too)
+                            { 120.0, M_EXTENDER_DO_NOT_CARE,
                                 0.0, true },
                             50,   0.0,    false },
    {   1,  M_ARM_TO_POS,    { (units::foot_t)1.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+   // next line was M_EXTENDER_FULLY_EXTENDED,  (all below too)
+                            { 120.0, M_EXTENDER_DO_NOT_CARE,
                                 0.0, true },
                             50,   0.0,    false },
    {   2,  M_ARM_TO_POS,    { (units::foot_t)1.0,
@@ -331,13 +333,13 @@ private:
    {  20,  M_ARM_TO_POS,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE,
                                 0.0, true },
                             50,   0.0,    false },
    {  21,  M_ARM_TO_POS,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 0.0, true },
                             50,   0.0,    false },
    {  22,  M_ARM_TO_POS,    { (units::foot_t)15.0,
@@ -454,13 +456,13 @@ private:
    {  40,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, true },
                             50,   0.0,    false },
    {  41,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 0.0, true },
                             50,   0.0,    false },
    {  42,  M_ARM_TO_POS,    { (units::foot_t)14.0,
@@ -577,13 +579,13 @@ private:
    {  60,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, true },
                             50,   0.0,    false },
    {  61,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 0.0, true },
                             50,   0.0,    false },
    {  62,  M_ARM_TO_POS,    { (units::foot_t)14.0,
@@ -601,7 +603,7 @@ private:
    {  64,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)2.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    // The two setpoints below add a little jog to the left to avoid the
@@ -621,7 +623,7 @@ private:
    {  65,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)-4.0,   // should be -6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
             // Center of charging station is actually 98 inches from grid base
@@ -629,7 +631,7 @@ private:
    {  66,  M_GO_TO_POSE,    { (units::foot_t)7.0,    // was 9.0
                               (units::foot_t)-4.0,   // should be -6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    {  67,  M_BALANCE,       { (units::foot_t)7.0,    // was 9.0
@@ -641,13 +643,13 @@ private:
    {  68,  M_STOP,          { (units::foot_t)7.0,    // was 9.0
                               (units::foot_t)-4.0,   // should be -6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
    {  69,  M_TERMINATE_SEQ, { (units::foot_t)7.0,    // was 9.0
                               (units::foot_t)-4.0,   // should be -6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               0.0, false },
                             0,   0.0,    false },
    {  70,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
@@ -717,13 +719,13 @@ private:
    {  80,  M_ARM_TO_POS,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, true },
                             50,   0.0,    false },
    {  81,  M_ARM_TO_POS,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 0.0, true },
                             50,   0.0,    false },
    {  82,  M_ARM_TO_POS,    { (units::foot_t)15.0,
@@ -741,25 +743,25 @@ private:
    {  84,  M_GO_TO_POSE,    { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    {  85,  M_STOP,          { (units::foot_t)15.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    {  86,  M_WAIT,          { (units::foot_t)8.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             50,   0.0,    false },
    {  87,  M_GO_TO_POSE,    { (units::foot_t)8.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            {  100.0, M_EXTENDER_FULLY_RETRACTED,
+                            {  100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                  0.0, false },
                             50,   0.0,    false },
    {  88,  M_BALANCE,       { (units::foot_t)8.0,
@@ -771,13 +773,13 @@ private:
    {  89,  M_STOP,          { (units::foot_t)8.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
    {  90,  M_TERMINATE_SEQ, { (units::foot_t)8.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
    {  91,  M_TERMINATE_SEQ, { (units::foot_t)8.0,
@@ -840,13 +842,13 @@ private:
    { 100,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, true },
                             50,   0.0,    false },
    { 101,  M_ARM_TO_POS,    { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 120.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 0.0, true },
                             50,   0.0,    false },
    { 102,  M_ARM_TO_POS,    { (units::foot_t)14.0,
@@ -865,19 +867,19 @@ private:
                               (units::foot_t)-2.5,   // this is asymmetric;
                                                      // left side is different
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                    -90.0, false },
                             0,   0.0,    false },
    { 105,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    { 106,  M_GO_TO_POSE,    { (units::foot_t)7.0,     // was 9.0
                               (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               -90.0, false },
                             0,   0.0,    false },
    { 107,  M_BALANCE,       { (units::foot_t)7.0,     // was 9.0
@@ -889,13 +891,13 @@ private:
    { 108,  M_STOP,          { (units::foot_t)7.0,     // was 9.0
                               (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
    { 109,  M_TERMINATE_SEQ, { (units::foot_t)7.0,     // was 9.0
                               (units::foot_t)4.0,     // should be 6.0
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               0.0, false },
                             0,   0.0,    false },
    { 110,  M_TERMINATE_SEQ, { (units::foot_t)9.0,
@@ -963,13 +965,13 @@ private:
    { 120,  M_STOP,          { (units::foot_t)0.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 140.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 140.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                 0.0, true },
                             0,   0.0,    false },
    { 121,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                               0.0, true },
                             0,   0.0,    false },
    { 122,  M_TERMINATE_SEQ, { (units::foot_t)0.0,
@@ -2169,6 +2171,29 @@ double limex, limey, limea, limev, limes;
       } else if ( m_DriveController.GetRightBumper() ) {
          rot =  Drivetrain::kMaxAngularSpeed;
       }
+#ifdef JAG_NOTDEFINED
+           // The code here implements an idea of Alice.
+           // It gives the driver the ability to orient the robot yaw
+           // immediately in one of the cardinal directions, with the
+           // Driver's POV buttons, which return 0, 45, 90, 135, 180, etc.
+      int iDriversPOV = m_DriveController.GetPOV();
+      if ( -1 < iDriversPOV ) {
+         int iCurrYaw =
+                     sCurrState.CurrentRobotPose.Rotation().Degrees().value();
+         if ( ( iDriversPOV - iCurrYaw < -180 ) ||
+              (  180 < iDriversPOV - iCurrYaw )    ) {
+		            // turn left
+            rot = m_rotLimiter.Calculate(  ( iDriversPOV - iCurrYaw ) /
+                                       180.00 ) * Drivetrain::kMaxAngularSpeed;
+         } else {
+		            // turn right
+            rot = m_rotLimiter.Calculate( -( iDriversPOV - iCurrYaw ) /
+                                       180.00 ) * Drivetrain::kMaxAngularSpeed;
+         }
+         rot = std::min( Drivetrain::kMaxAngularSpeed, rot );
+         rot = std::max( -Drivetrain::kMaxAngularSpeed, rot );
+      }
+#endif
 
               // If "B" button is pressed, don't allow the drive motors to move
       m_swerve.Drive( xSpeed, ySpeed, rot, fieldRelative,
@@ -2455,7 +2480,8 @@ double limex, limey, limea, limev, limes;
       {
          m_swerve.Reset();
       }
-      if (m_DriveController.GetAButton())
+      // if (m_DriveController.GetAButton())
+      if ( 0.9 < m_DriveController.GetLeftTriggerAxis() )
       {
          dSpeedFactor = 0.1;
       } else {
@@ -2678,7 +2704,8 @@ double limex, limey, limea, limev, limes;
       } else if ( 180 == iConPOV ) { 
          ArmToPosition( M_ARMPOS_LOCONE, false ); // low cone scoring position
       } else if ( 270 == iConPOV ) {
-         ArmToPosition( M_ARMPOS_BACKGRAB, false );  // Low back pickup
+         // ArmToPosition( M_ARMPOS_BACKGRAB, false );  // Low back pickup
+         ArmToPosition( M_ARMPOS_HUMNPLYRSTATN, false );  // Human player statn
         // m_OperatorController.SetRumble(
                              // frc::GenericHID::RumbleType::kBothRumble, 0.5 );
       } else {
