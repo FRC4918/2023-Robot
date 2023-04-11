@@ -129,9 +129,15 @@ private:
 
              // Slew rate limiters to make joystick inputs more gentle;
              // 1/5 second from 0 to 1 (x and y speedLimiters were {3 / 1_s}).
-   frc::SlewRateLimiter<units::scalar> m_xspeedLimiter{ 5 / 1_s};
-   frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{ 5 / 1_s};
-   frc::SlewRateLimiter<units::scalar> m_rotLimiter{ 5 / 1_s};
+// jag; 07apr2023  (separated teleop/auto drive slews, reduced teleop from 1/5 to 1/10)
+   frc::SlewRateLimiter<units::scalar> m_xspeedLimiter{ 10 / 1_s};
+   frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{ 10 / 1_s};
+   frc::SlewRateLimiter<units::scalar> m_rotLimiter{ 10 / 1_s};
+             // Separate the slew rates for driving during autonomous
+   frc::SlewRateLimiter<units::scalar> m_xspeedLimiterA{ 5 / 1_s};
+   frc::SlewRateLimiter<units::scalar> m_yspeedLimiterA{ 5 / 1_s};
+   frc::SlewRateLimiter<units::scalar> m_rotLimiterA{ 5 / 1_s};
+
    frc::SlewRateLimiter<units::scalar> m_ShoulderLimiter{ 5 / 1_s};
 
    std::shared_ptr<nt::NetworkTable> limenttable =
@@ -237,55 +243,55 @@ private:
                             { 100.0, M_EXTENDER_DO_NOT_CARE,
                                    -90.0, false },
                             0,   0.0,    false },
-   {   5,  M_GO_TO_POSE,    { (units::foot_t)14.0,
+   {   5,  M_GO_TO_POSE,    { (units::foot_t)14.0,   // 14.5, 
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {   6,  M_GO_TO_POSE,    { (units::foot_t)15.2,
+   {   6,  M_GO_TO_POSE,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {   7,  M_ARM_TO_POS,    { (units::foot_t)15.2,
+   {   7,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
-                               80.0, false },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, false },                // 80, 
                             50,   0.0,    false },
-   {   8,  M_WAIT,          { (units::foot_t)15.2,
+   {   8,  M_WAIT,          { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
-                               80.0, false },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, false },                // 80, 
                             50,   0.0,    false },
-   {   9,  M_ARM_TO_POS,    { (units::foot_t)15.2,
+   {   9,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 120.0, M_EXTENDER_FULLY_EXTENDED,
-                               70.0, true },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, true },                 // 70, 
                             50,   0.0,    false },
-   {  10,  M_ARM_TO_POS,    { (units::foot_t)15.2,
+   {  10,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            {  90.0, M_EXTENDER_FULLY_EXTENDED,
+                            {  90.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
                                70.0, true },
                             0,   0.0,    false },
-   {  11,  M_GO_TO_POSE,    { (units::foot_t)0.5,
+   {  11,  M_GO_TO_POSE,    { (units::foot_t)0.0,
                               (units::foot_t)1.67,
                               (units::degree_t)0.0 },
                             { -60.0, M_EXTENDER_DO_NOT_CARE,
                               -70.0, true },
                             0,   0.0,    false },
-   {  12,  M_ARM_TO_POS,    { (units::foot_t)0.5,
+   {  12,  M_ARM_TO_POS,    { (units::foot_t)0.0,
                               (units::foot_t)1.67,
                               (units::degree_t)0.0 },
                             { -60.0, M_EXTENDER_DO_NOT_CARE, // high cone score
                               -70.0, false },
                             0,   0.0,    false },
-   {  13,  M_STOP,          { (units::foot_t)0.5,
+   {  13,  M_STOP,          { (units::foot_t)0.0,
                               (units::foot_t)1.67,
                               (units::degree_t)0.0 },
                             { 140.0, M_EXTENDER_FULLY_EXTENDED,
@@ -477,6 +483,8 @@ private:
                             { -55.0, M_EXTENDER_DO_NOT_CARE,
                               -90.0, false },
                             50,   0.0,    false },
+// jag; 07apr2023  (changed right side auto to be mirror image of left side)
+#ifdef JUST_DRIVE_OUT
    {  44,  M_GO_TO_POSE,    { (units::foot_t)14.0,
                               (units::foot_t)-2.5,
                               (units::degree_t)0.0 },
@@ -501,7 +509,7 @@ private:
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
-   {  47,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
+   {  48,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
                               (units::foot_t)-2.5,
                               (units::degree_t)0.0 },
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
@@ -543,6 +551,75 @@ private:
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
+#else    // JUST_DRIVE_OUT  (below sequence tries to grab a cone, too)
+   {  44,  M_GO_TO_POSE,    { (units::foot_t)6.0,
+                              (units::foot_t)-1.4,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,
+                                   -90.0, false },
+                            0,   0.0,    false },
+   {  45,  M_GO_TO_POSE,    { (units::foot_t)14.0,   // 14.5, 
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                                70.0, false },
+                            0,   0.0,    false },
+   {  46,  M_GO_TO_POSE,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                                70.0, false },
+                            0,   0.0,    false },
+   {  47,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, false },                // 80, 
+                            50,   0.0,    false },
+   {  48,  M_WAIT,          { (units::foot_t)16.25,           // was 16.1,
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, false },                // 80, 
+                            50,   0.0,    false },
+   {  49,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                               129.6, true },                 // 70, 
+                            50,   0.0,    false },
+   {  50,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
+                              (units::foot_t)-0.5,
+                              (units::degree_t)0.0 },
+                            {  90.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                               70.0, true },
+                            0,   0.0,    false },
+   {  51,  M_GO_TO_POSE,    { (units::foot_t)0.0,
+                              (units::foot_t)-1.67,
+                              (units::degree_t)0.0 },
+                            { -60.0, M_EXTENDER_DO_NOT_CARE,
+                              -70.0, true },
+                            0,   0.0,    false },
+   {  52,  M_ARM_TO_POS,    { (units::foot_t)0.0,
+                              (units::foot_t)-1.67,
+                              (units::degree_t)0.0 },
+                            { -60.0, M_EXTENDER_DO_NOT_CARE, // high cone score
+                              -70.0, false },
+                            0,   0.0,    false },
+   {  53,  M_STOP,          { (units::foot_t)0.0,
+                              (units::foot_t)-1.67,
+                              (units::degree_t)0.0 },
+                            { 140.0, M_EXTENDER_FULLY_EXTENDED,
+                                  90.0, false },
+                            0,   0.0,    false },
+   {  54,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
+                              (units::foot_t)-2.0,
+                              (units::degree_t)0.0 },
+                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
+                                0.0, false },
+                            0,   0.0,    false },
+#endif   // JUST_DRIVE_OUT
+
    {  55,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
@@ -1694,12 +1771,13 @@ double limex, limey, limea, limev, limes;
               << transform.Rotation().Degrees().value()
               << endl;
       }
-      auto xSpeed = m_xspeedLimiter.Calculate(
+// jag; 07apr2023    (Limiter --> LimiterA in 3 places)
+      auto xSpeed = m_xspeedLimiterA.Calculate(
                         transform.X().value() / 2.0 ) * Drivetrain::kMaxSpeed;
-      auto ySpeed = m_yspeedLimiter.Calculate(
+      auto ySpeed = m_yspeedLimiterA.Calculate(
                         transform.Y().value() / 2.0 ) * Drivetrain::kMaxSpeed;
       auto rot =
-             m_rotLimiter.Calculate( transform.Rotation().Degrees().value() /
+             m_rotLimiterA.Calculate( transform.Rotation().Degrees().value() /
                                        180.00 ) * Drivetrain::kMaxAngularSpeed;
 
       xSpeed = std::min( Drivetrain::kMaxSpeed, xSpeed );
@@ -1927,7 +2005,9 @@ double limex, limey, limea, limev, limes;
                    // It was about 15 degrees off all the time, but with this
                    // change it is only off about 6 degrees now.
                    // But it'll be much better to eliminate that friction!
-      double dWristSpeed = ( dDesWrist - dCurWrist )/1.0;   // jag; was /2.0
+// jag; 07apr2023    (  /1.0 --> /2.0 )
+      double dWristSpeed = ( dDesWrist - dCurWrist )/2.0;   // jag; was /2.0
+      // double dWristSpeed = ( dDesWrist - dCurWrist )/1.0;   // jag; was /2.0
       dWristSpeed = std::max( dWristSpeed, -12.0 );
       dWristSpeed = std::min( dWristSpeed,  12.0 );
 
@@ -2516,7 +2596,12 @@ double limex, limey, limea, limev, limes;
       nt::NetworkTableInstance::GetDefault().GetTable("limelight")->
                                        PutNumber( "camMode", ldriver );
       nt::NetworkTableInstance::GetDefault().GetTable("limelight")->
+// jag; 07apr2023    ( turn Limelight LEDs off always )
+#ifndef LIMELIGHT_ACTIVATELEDS
                                        PutNumber( "ledMode", ldriver );
+#else
+                                       PutNumber( "ledMode", 1 ); // LEDs off
+#endif
 
       std::vector<double> lcam_pose_target =
                    limenttable->GetNumberArray("tid", std::vector<double>(6));
@@ -2607,6 +2692,18 @@ double limex, limey, limea, limev, limes;
       } else if ( BUTTON_SWITCH1 ) {
          mSeqIndex =  0;         // (score, forward left, try to grab cube,
                                  // then back and score again.
+// jag; 07apr2023 (possible way to add code to account for cable guard)
+                                 // We could add code here like this:
+         // if ( frc::DriverStation::kRed == frc::DriverStation::GetAlliance() ) {
+                                 // adjust some of the maneuvers, to account for
+                                 // the disruption of the cable guard
+                                 // (add 6" to each drive distance).
+                                 // (The lines below aren't correct; they need to
+                                 //  be whatever it takes to add 0.5 to each X field)
+         //   frc::Transform2d transformIncrement =  (frc::Transform2d){ { 0.5, 0.0 }, 0.0 };
+         //    mSeq[5].DestinationPose = mSeq[5].DestinationPose + transformIncrement;
+         //    mSeq[6].DestinationPose.X += 0.5;   etc...
+         // }
       } else if ( BUTTON_SWITCH2 ) {
          mSeqIndex = 20;         // score, forward straight, continue facing
                                  // forward
