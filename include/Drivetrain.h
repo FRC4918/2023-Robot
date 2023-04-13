@@ -1,4 +1,5 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) 2023 FRC Team 4918.
+// Some software is also Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -26,14 +27,15 @@ public:
    void Reset(void);
 
    void Drive(units::meters_per_second_t xSpeed,
-              units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
+              units::meters_per_second_t ySpeed,
+	      units::radians_per_second_t rot,
               bool fieldRelative,
               bool bFreezeDriveMotors = false );
    bool DriveUphill( units::meters_per_second_t sSpeed );
    void UpdateOdometry();
 
         // Both of the below "maximums" are about twice what the robot
-	// can actually do (about 3 meters/second and about 1 rotation/second)
+        // can actually do (about 3 meters/second and about 1 rotation/second)
    static constexpr units::meters_per_second_t kMaxSpeed =
        5.5_mps; // about 5.5 meters per second
    static constexpr units::radians_per_second_t kMaxAngularSpeed{

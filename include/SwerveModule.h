@@ -1,4 +1,5 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) 2023 FRC Team 4918.
+// Some software is also Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -41,7 +42,7 @@ public:
    // frc::SwerveModuleState GetState() const;
    frc::SwerveModulePosition GetPosition() const;
    void SetDesiredState( const frc::SwerveModuleState &state,
-		         bool bFreezeDriveMotor = false );
+                         bool bFreezeDriveMotor = false );
 
 private:
    static constexpr double kWheelRadius = 0.319;
@@ -75,8 +76,8 @@ private:
        0.0,
        0.001,
        {kModuleMaxAngularVelocity, kModuleMaxAngularAcceleration}};
-
-   frc::SimpleMotorFeedforward<units::meters> m_driveFeedforward{0.1_V, // was 1.0
+                                                                    // was 1.0
+   frc::SimpleMotorFeedforward<units::meters> m_driveFeedforward{0.1_V,
                                                                  1_V / 1_mps};
    frc::SimpleMotorFeedforward<units::radians> m_turnFeedforward{
        0.2_V /*was 1.0*/, 0.025_V / 1_rad_per_s};
