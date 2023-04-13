@@ -1,4 +1,5 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) 2023 FRC Team 4918.
+// Some software is also Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -125,7 +126,7 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
                            (currPitch/20.0 + currPitchRate/40.0);
              // Don't go too extreme in speed, if pitch and pitchrate are both
              // in the same direction.  This probably means we went too far
-	     // across the charging station, and it started tipping back.
+             // across the charging station, and it started tipping back.
    if ( ( 0.0 < currPitch     && 0.0 < currPitchRate ) ||
         ( currPitchRate < 0.0 && currPitch     < 0.0 )    ) {
       xSpeed = (units::meters_per_second_t)(currPitch/20.0);
@@ -134,13 +135,13 @@ bool Drivetrain::DriveUphill( units::meters_per_second_t sSpeed ) {
    xSpeed = std::max( -Drivetrain::kMaxSpeed, xSpeed );
           // Make sure robot never goes downhill strongly (that the pitch rate
           // correction factor never overcomes the pitch factor).
-	  // We allow a small (slow) amount of downhill travel, because the
-	  // charging station doesn't seem to start tipping until the robot
-	  // is too far, leading to continual back-and-forth rocking.
-	  // 0.2 worked well inside, with charging station on carpet;
-	  // 0.1 worked better with charging station on slick wood sliders
-	  // (lower friction), which is probably more similar to the real
-	  // charging station.
+          // We allow a small (slow) amount of downhill travel, because the
+          // charging station doesn't seem to start tipping until the robot
+          // is too far, leading to continual back-and-forth rocking.
+          // 0.2 worked well inside, with charging station on carpet;
+          // 0.1 worked better with charging station on slick wood sliders
+          // (lower friction), which is probably more similar to the real
+          // charging station.
    if ( 0.0 < currPitch ) {             // make sure robot never goes downhill
       xSpeed = std::max( (units::meters_per_second_t)-0.1, xSpeed );
    } else {
@@ -204,8 +205,8 @@ void Drivetrain::UpdateOdometry()
    //                   {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
    //                    m_backLeft.GetPosition(), m_backRight.GetPosition()});
    m_poseEstimator.Update(m_gyro.GetRotation2d(),
-                      {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
-                       m_backLeft.GetPosition(),  m_backRight.GetPosition()  });
+                     {m_frontLeft.GetPosition(), m_frontRight.GetPosition(),
+                      m_backLeft.GetPosition(),  m_backRight.GetPosition()  });
 // if ( 0 == iCallCount%50 ) {
 //    frc::Pose2d pose = m_poseEstimator.GetEstimatedPosition();
 //    std::cout << "X: " << pose.X().value() << ", Y: " << pose.Y().value() <<
@@ -214,8 +215,8 @@ void Drivetrain::UpdateOdometry()
   iCallCount++;
 
   // Also apply vision measurements. We use 0.3 seconds in the past as an
-  // example -- on a real robot, this must be calculated based either on latency
-  // or timestamps.
+  // example -- on a real robot, this must be calculated based either on
+  // latency or timestamps.
 //  m_poseEstimator.AddVisionMeasurement(
 //      ExampleGlobalMeasurementSensor::GetEstimatedGlobalPose(
 //          m_poseEstimator.GetEstimatedPosition()),

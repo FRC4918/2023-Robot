@@ -129,7 +129,8 @@ private:
 
              // Slew rate limiters to make joystick inputs more gentle;
              // 1/5 second from 0 to 1 (x and y speedLimiters were {3 / 1_s}).
-// jag; 07apr2023  (separated teleop/auto drive slews, reduced teleop from 1/5 to 1/10)
+// jag; 07apr2023  (separated teleop/auto drive slews, and
+//                  reduced teleop from 1/5 to 1/10)
    frc::SlewRateLimiter<units::scalar> m_xspeedLimiter{ 10 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_yspeedLimiter{ 10 / 1_s};
    frc::SlewRateLimiter<units::scalar> m_rotLimiter{ 10 / 1_s};
@@ -246,37 +247,37 @@ private:
    {   5,  M_GO_TO_POSE,    { (units::foot_t)14.0,   // 14.5, 
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {   6,  M_GO_TO_POSE,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+   {   6,  M_GO_TO_POSE,    { (units::foot_t)16.25,       // was 16.1,  // 15.2
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {   7,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+   {   7,  M_ARM_TO_POS,    { (units::foot_t)16.25,       // was 16.1,  // 15.2
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, false },                // 80, 
                             50,   0.0,    false },
    {   8,  M_WAIT,          { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, false },                // 80, 
                             50,   0.0,    false },
    {   9,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, true },                 // 70, 
                             50,   0.0,    false },
    {  10,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)0.5,
                               (units::degree_t)0.0 },
-                            {  90.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            {  90.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                70.0, true },
                             0,   0.0,    false },
    {  11,  M_GO_TO_POSE,    { (units::foot_t)0.0,
@@ -484,74 +485,6 @@ private:
                               -90.0, false },
                             50,   0.0,    false },
 // jag; 07apr2023  (changed right side auto to be mirror image of left side)
-#ifdef JUST_DRIVE_OUT
-   {  44,  M_GO_TO_POSE,    { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                              -90.0, false },
-                            0,   0.0,    false },
-   {  45,  M_STOP,          { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  46,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  47,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  48,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  49,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  50,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)-2.5,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  51,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  52,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  53,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-   {  54,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
-                              (units::foot_t)0.0,
-                              (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_FULLY_RETRACTED,
-                                0.0, false },
-                            0,   0.0,    false },
-#else    // JUST_DRIVE_OUT  (below sequence tries to grab a cone, too)
    {  44,  M_GO_TO_POSE,    { (units::foot_t)6.0,
                               (units::foot_t)-1.4,
                               (units::degree_t)0.0 },
@@ -561,37 +494,37 @@ private:
    {  45,  M_GO_TO_POSE,    { (units::foot_t)14.0,   // 14.5, 
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {  46,  M_GO_TO_POSE,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+   {  46,  M_GO_TO_POSE,    { (units::foot_t)16.25,       // was 16.1,  // 15.2
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            { 100.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                 70.0, false },
                             0,   0.0,    false },
-   {  47,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,  // 15.2
+   {  47,  M_ARM_TO_POS,    { (units::foot_t)16.25,       // was 16.1,  // 15.2
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, false },                // 80, 
                             50,   0.0,    false },
    {  48,  M_WAIT,          { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, false },                // 80, 
                             50,   0.0,    false },
    {  49,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_EXTENDED,
+                            { 112.2, M_EXTENDER_DO_NOT_CARE,  // 120, FULLY_,
                                129.6, true },                 // 70, 
                             50,   0.0,    false },
    {  50,  M_ARM_TO_POS,    { (units::foot_t)16.25,           // was 16.1,
                               (units::foot_t)-0.5,
                               (units::degree_t)0.0 },
-                            {  90.0, M_EXTENDER_DO_NOT_CARE,  // FULLY_EXTENDED,
+                            {  90.0, M_EXTENDER_DO_NOT_CARE, // FULLY_EXTENDED,
                                70.0, true },
                             0,   0.0,    false },
    {  51,  M_GO_TO_POSE,    { (units::foot_t)0.0,
@@ -618,7 +551,6 @@ private:
                             { 100.0, M_EXTENDER_FULLY_RETRACTED,
                                 0.0, false },
                             0,   0.0,    false },
-#endif   // JUST_DRIVE_OUT
 
    {  55,  M_TERMINATE_SEQ, { (units::foot_t)14.0,
                               (units::foot_t)0.0,
@@ -685,13 +617,13 @@ private:
                             0,   0.0,    false },
    // The two setpoints below add a little jog to the left to avoid the
    // charging station.  This slows things down, so we use the method above.
-   // {  68,  M_GO_TO_POSE,    { (units::foot_t)3.5,
+   // {  6x,  M_GO_TO_POSE,    { (units::foot_t)3.5,
    //                            (units::foot_t)1.5,
    //                            (units::degree_t)0.0 },
    //                          { 100.0, M_EXTENDER_FULLY_RETRACTED,
    //                            -90.0, false },
    //                          0,   0.0,    false },
-   // {  68,  M_GO_TO_POSE,    { (units::foot_t)14.0,
+   // {  6x,  M_GO_TO_POSE,    { (units::foot_t)14.0,
    //                            (units::foot_t)1.5,
    //                            (units::degree_t)0.0 },
    //                          { 100.0, M_EXTENDER_FULLY_RETRACTED,
@@ -838,7 +770,7 @@ private:
    {  87,  M_GO_TO_POSE,    { (units::foot_t)8.0,
                               (units::foot_t)0.0,
                               (units::degree_t)0.0 },
-                            {  100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
+                            { 100.0, M_EXTENDER_DO_NOT_CARE, // FULLY_RETRACTED,
                                  0.0, false },
                             50,   0.0,    false },
    {  88,  M_BALANCE,       { (units::foot_t)8.0,
@@ -1370,7 +1302,7 @@ double limex, limey, limea, limev, limes;
 
                                        // Get the USB camera from CameraServer
       cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
-      // camera.SetResolution(640, 480);                    // Set the resolution
+      // camera.SetResolution(640, 480);                 // Set the resolution
       camera.SetResolution(320, 240);                    // Set the resolution
       camera.SetExposureManual(25);
 
@@ -1566,9 +1498,9 @@ double limex, limey, limea, limev, limes;
                      // been hit because we know which direction we were
                      // moving (retracting or extending) when black was hit.
       // sCurrState.sArmPose.eExtenderPosition = 
-                                   // fully back (toward back robot) is 0;
-                                   // fully forward is 2306 (we measured this)
-                                   // NO: fully forward is 2306 (we measured this)
+                                // fully back (toward back robot) is 0;
+                                // fully forward is 2306 (we measured this)
+                                // NO: fully forward is 2306 (we measured this)
              // compute wrist position, relative to straight up (+ is forward,
              // once we invert the encoder report, since that is backward)
              // This depends on the arm position as well as the wrist motor.
@@ -2262,11 +2194,11 @@ double limex, limey, limea, limev, limes;
                      sCurrState.CurrentRobotPose.Rotation().Degrees().value();
          if ( ( iDriversPOV - iCurrYaw < -180 ) ||
               (  180 < iDriversPOV - iCurrYaw )    ) {
-		            // turn left
+                            // turn left
             rot = m_rotLimiter.Calculate(  ( iDriversPOV - iCurrYaw ) /
                                        180.00 ) * Drivetrain::kMaxAngularSpeed;
          } else {
-		            // turn right
+                            // turn right
             rot = m_rotLimiter.Calculate( -( iDriversPOV - iCurrYaw ) /
                                        180.00 ) * Drivetrain::kMaxAngularSpeed;
          }
@@ -2684,7 +2616,7 @@ double limex, limey, limea, limev, limes;
       } else if ( BUTTON_SWITCH1 && BUTTON_SWITCH3 ) {
          mSeqIndex = 120;         // Do nothing auto (stop, end) 
       } else if ( BUTTON_SWITCH1 && BUTTON_SWITCH4 ) {
-         mSeqIndex = 60;         // (score, forward left, right, back, balance) 
+         mSeqIndex = 60;         // (score, forward left, right, back, balance)
       } else if ( BUTTON_SWITCH2 && BUTTON_SWITCH4 ) {
          mSeqIndex = 80;         // (score, forward straight, back, balance)
       } else if ( BUTTON_SWITCH3 && BUTTON_SWITCH4 ) {
@@ -2694,14 +2626,17 @@ double limex, limey, limea, limev, limes;
                                  // then back and score again.
 // jag; 07apr2023 (possible way to add code to account for cable guard)
                                  // We could add code here like this:
-         // if ( frc::DriverStation::kRed == frc::DriverStation::GetAlliance() ) {
-                                 // adjust some of the maneuvers, to account for
-                                 // the disruption of the cable guard
-                                 // (add 6" to each drive distance).
-                                 // (The lines below aren't correct; they need to
-                                 //  be whatever it takes to add 0.5 to each X field)
-         //   frc::Transform2d transformIncrement =  (frc::Transform2d){ { 0.5, 0.0 }, 0.0 };
-         //    mSeq[5].DestinationPose = mSeq[5].DestinationPose + transformIncrement;
+         // if ( frc::DriverStation::kRed ==
+         //                               frc::DriverStation::GetAlliance() ) {
+                           // adjust some of the maneuvers, to account for
+                           // the disruption of the cable guard
+                           // (add 6" to each drive distance).
+                           // (The lines below aren't correct; they need to
+                           //  be whatever it takes to add 0.5 to each X field)
+         //   frc::Transform2d transformIncrement =
+         //                            (frc::Transform2d){ { 0.5, 0.0 }, 0.0 };
+         //    mSeq[5].DestinationPose =
+         //                       mSeq[5].DestinationPose + transformIncrement;
          //    mSeq[6].DestinationPose.X += 0.5;   etc...
          // }
       } else if ( BUTTON_SWITCH2 ) {
@@ -2804,7 +2739,7 @@ double limex, limey, limea, limev, limes;
          // ArmToPosition( M_ARMPOS_BACKGRAB, false );  // Low back pickup
          ArmToPosition( M_ARMPOS_HUMNPLYRSTATN, false );  // Human player statn
         // m_OperatorController.SetRumble(
-                             // frc::GenericHID::RumbleType::kBothRumble, 0.5 );
+                            // frc::GenericHID::RumbleType::kBothRumble, 0.5 );
       } else {
          ArmByJoysticks();
       }  // if no "ArmToPosition()" button pressed
@@ -2822,7 +2757,7 @@ double limex, limey, limea, limev, limes;
                                                         // close the grabber
             m_grabberPortSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
             m_grabberStbdSolenoid.Set( frc::DoubleSolenoid::Value::kForward);
-            bGrabberPortState = bGrabberStbdState = true;                       
+            bGrabberPortState = bGrabberStbdState = true;
             sCurrState.sArmPose.bGrabberClosed = true;
          }
       }

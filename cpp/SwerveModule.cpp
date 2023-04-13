@@ -1,4 +1,5 @@
-// Copyright (c) FIRST and other WPILib contributors.
+// Copyright (c) 2023 FRC Team 4918.
+// Some software is also Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
@@ -70,14 +71,14 @@ void MotorInitSpark(rev::CANSparkMax &m_motor)
 
    /* Set limits to how much current will be sent through the motor */
 #ifdef SAFETY_LIMITS
-                               // 10 Amps below 5000 RPM, above 5000 RPM it ramps from
-                               // 10 Amps down to  5 Amps at 5700 RPM
+                       // 10 Amps below 5000 RPM, above 5000 RPM it ramps from
+                       // 10 Amps down to  5 Amps at 5700 RPM
    m_motor.SetSmartCurrentLimit(10, 5, 5000);
 #else
-                                 // 30 Amps below 5000 RPM, above 5000 RPM it ramps from
-                                 // 30 Amps down to 10 Amps at 5700 RPM
-                                 // We may have to try different CurrentLimits here to
-                                 // eliminate drivetrain chattering.
+                       // 80 Amps below 5000 RPM, above 5000 RPM it ramps from
+                       // 80 Amps down to 10 Amps at 5700 RPM
+                       // We may have to try different CurrentLimits here to
+                       // eliminate drivetrain chattering.
    m_motor.SetSmartCurrentLimit(80, 10, 5000);
 #endif
    m_motor.GetForwardLimitSwitch(
@@ -102,11 +103,11 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
                            const int turningMotorCanID,
                            const int turningEncoderSlot,
                            const int turningEncoderOffset)
-    : m_driveMotor(driveMotorCanID, rev::CANSparkMax::MotorType::kBrushless),
-      m_turningMotor(turningMotorCanID, rev::CANSparkMax::MotorType::kBrushless),
-      m_driveEncoder(m_driveMotor.GetEncoder()),
-      m_turningEncoder(turningEncoderSlot),
-      m_turningEncoderOffset(turningEncoderOffset)
+  : m_driveMotor(driveMotorCanID, rev::CANSparkMax::MotorType::kBrushless),
+    m_turningMotor(turningMotorCanID, rev::CANSparkMax::MotorType::kBrushless),
+    m_driveEncoder(m_driveMotor.GetEncoder()),
+    m_turningEncoder(turningEncoderSlot),
+    m_turningEncoderOffset(turningEncoderOffset)
 {
 
    // Initialize both CAN Spark-driven NEO motors.
@@ -125,12 +126,16 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // so adjust the new divisor: (39.0 * 4.09/6.096) = 26.17
    m_driveEncoder.SetVelocityConversionFactor(1.0 / 2340.0);
 
-   std::cout << "Initializing a swerve AnalogInput at " << turningEncoderSlot << std::endl;
+   std::cout << "Initializing a swerve AnalogInput at "
+                                            << turningEncoderSlot << std::endl;
    //  pm_turningEncoder = new frc::AnalogInput(turningEncoderSlot);
    //  pm_turningEncoder->GetAverageBits();
    //  pm_turningEncoder->GetOversampleBits();
-   std::cout << "receiving average/oversample bits " << m_turningEncoder.GetAverageBits() << "/" << m_turningEncoder.GetOversampleBits() << std::endl;
-   std::cout << "receiving Sample Rate " << m_turningEncoder.GetSampleRate() << std::endl;
+   std::cout << "receiving average/oversample bits "
+             << m_turningEncoder.GetAverageBits() << "/"
+             << m_turningEncoder.GetOversampleBits() << std::endl;
+   std::cout << "receiving Sample Rate " << m_turningEncoder.GetSampleRate()
+                                                                  << std::endl;
 
    // Set the distance (in this case, angle) per pulse for the turning encoder.
    // This is the the angle through an entire rotation (2 * std::numbers::pi)
@@ -138,8 +143,8 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
    // m_turningEncoder.SetDistancePerPulse(2 * std::numbers::pi /
    //                                     kEncoderResolution);
 
-   // Limit the PID Controller's input range between -pi and pi and set the input
-   // to be continuous.
+   // Limit the PID Controller's input range between -pi and pi and set the
+   // input to be continuous.
    m_turningPIDController.EnableContinuousInput(
        -units::radian_t{std::numbers::pi}, units::radian_t{std::numbers::pi});
 
@@ -167,7 +172,10 @@ SwerveModule::SwerveModule(const int driveMotorCanID,
 frc::SwerveModulePosition SwerveModule::GetPosition() const
 {
    return {units::meter_t{m_driveEncoder.GetPosition()},
-           units::radian_t{(-((360 * m_turningEncoder.GetAverageValue() / 4070 + m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0}};
+           units::radian_t{(-((360 *
+                               m_turningEncoder.GetAverageValue() / 4070 +
+                               m_turningEncoderOffset) % 360)) *
+                           std::numbers::pi / 180.0}};
 }
 
 void SwerveModule::SetDesiredState(
@@ -176,8 +184,11 @@ void SwerveModule::SetDesiredState(
 {
    // Optimize the reference state to avoid spinning further than 90 degrees
    const auto state = frc::SwerveModuleState::Optimize(
-       referenceState, units::radian_t{(-((360 * m_turningEncoder.GetAverageValue() / 4070 + m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0});
-   // TODO: could this range actually be -pi to pi? currently 0 to 2pi, docs just say it wants an angle
+       referenceState, units::radian_t{
+              (-((360 * m_turningEncoder.GetAverageValue() / 4070 +
+                  m_turningEncoderOffset) % 360)) * std::numbers::pi / 180.0});
+   // TODO: could this range actually be -pi to pi? currently 0 to 2pi,
+   // docs just say it wants an angle
 
    // Calculate the drive output from the drive PID controller.
 
@@ -198,7 +209,7 @@ void SwerveModule::SetDesiredState(
    // std::cout << " drive output " << driveOutput;
    // std::cout << " turn output " << turnOutput;
    // std::cout << " drive Feed Forward " << driveFeedforward.m_value;
-   // std::cout << " turn Feed Forward " << turnFeedforward.value() << std::endl;
+   // std::cout << " turn FF " << turnFeedforward.value() << std::endl;
    //  Set the motor outputs.
    if ( bFreezeDriveMotor ) {
       m_driveMotor.SetVoltage(units::volt_t{0.0});
